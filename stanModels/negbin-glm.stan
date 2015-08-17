@@ -1,12 +1,11 @@
 
-// negative binomial parameterized as eta (log(mu)) and dispersion (phi)
-// see p286 in stan-reference-2.4.0.pdf
-// a basic GLM example
+// Negative Binomial GLM
+// see Gelman and Hill (2007)
 data {
-  int<lower=1> N;    // rows of data
+  int<lower=1> N;       // number of observations
   int<lower=0> p;
   matrix[N, p] X;       // predictor
-  int<lower=0> y[N]; // response
+  int<lower=0> y[N];    // response
 } transformed data {
   vector[p] J;
   matrix[p, p] I_p;
@@ -15,10 +14,9 @@ data {
   I_p <- diag_matrix(rep_vector(1, p));
 }
 parameters {
-  real<lower=0> phi; // neg. binomial dispersion parameter
-  vector[p] beta;  // neg. binomial mean parameters
-}
-model {
+  real<lower=0> phi;   // Negative Binomial dispersion parameter
+  vector[p] beta;      // Negative Binomial mean parameters
+} model {
   // priors:
   phi ~ cauchy(0, 20);
   beta ~ multi_normal(J, 100 * I_p);

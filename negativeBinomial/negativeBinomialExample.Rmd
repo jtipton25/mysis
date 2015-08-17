@@ -35,8 +35,8 @@ parameters {
   y ~ neg_binomial_2_log(X * beta, phi);
 }
 "
-write(model, file = "~/mysis/stanModels/overdispersedPoisson-glm.stan")
-sm <- stan_model("~/mysis/stanModels/overdispersedPoisson-glm.stan")
+write(model, file = "~/mysis/stanModels/negbin-glm.stan")
+sm <- stan_model("~/mysis/stanModels/negbin-glm.stan")
 ```
 
 ## Simulate some Data
