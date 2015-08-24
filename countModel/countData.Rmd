@@ -12,7 +12,7 @@ Note: ttestData.csv is missing two sites in the two-way anova data...
 library(ggplot2)
 set.seed(123)
 data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40, header = TRUE)
-# data_one_way$full.5 ## count per m^2 for full net
+# data_one_way$full ## count per m^2 for full net
 # data_one_way$half ## count per m^2 for half net
 count <- c(data_one_way$full.5,  ## count for full net
             4 * data_one_way$half.5) ## count for half net adjusted for radius

@@ -1,0 +1,298 @@
+---
+title: "Beta Regression"
+author: "John Tipton"
+date: "August 14, 2015"
+output: html_document
+---
+
+## Note, there are propotions missing and proportions greater than 1
+
+# Write a beta GLM in STAN
+
+```{r}
+library(rstan)
+# model <- "
+# // beta Regression
+# data {
+#   int<lower=1> N_obs;                   // sample size
+#   int<lower=1> N_mis;                   // sample size
+#   int<lower=1> p;                       // p predictors
+#   vector<lower=0,upper=1>[N_obs] y_obs; // response 
+#   matrix[N_obs, p] X_obs;               // predictor matrix
+#   matrix[N_mis, p] X_mis;               // predictor matrix
+# }
+# parameters {
+#   vector<lower=0,upper=1>[N_mis] y_mis; // missing response 
+#   vector[p] theta;                      // reg coefficients
+#   real<lower=0> phi;                    // dispersion parameter
+# }
+# transformed parameters{
+#   vector[p] beta;
+#   beta <- theta * 10;               // matt trick if desired
+# }
+# model {
+#   // model calculations
+#   vector[N_obs] Xbeta_obs;              // linear predictor
+#   vector[N_mis] Xbeta_mis;              // linear predictor
+#   vector<lower=0,upper=1>[N_obs] mu_obs;// transformed linear predictor
+#   vector<lower=0,upper=1>[N_mis] mu_mis;// transformed linear predictor
+#   vector<lower=0>[N_obs] A_obs;         // parameter for beta distn
+#   vector<lower=0>[N_mis] A_mis;         // parameter for beta distn
+#   vector<lower=0>[N_obs] B_obs;         // parameter for beta distn
+#   vector<lower=0>[N_mis] B_mis;         // parameter for beta distn
+#   Xbeta_obs <- X_obs * beta;
+#   Xbeta_mis <- X_mis * beta;
+#   for (i in 1:N_obs) { 
+#     mu_obs[i] <- inv_logit(Xbeta_obs[i]);   
+#   }
+#   for (i in 1:N_mis) { 
+#     mu_mis[i] <- inv_logit(Xbeta_mis[i]);   
+#   }
+#   A_obs <- mu_obs * phi;
+#   A_mis <- mu_mis * phi;
+#   B_obs<- (1.0 - mu_obs) * phi;
+#   B_mis<- (1.0 - mu_mis) * phi;
+#   // priors
+#   theta ~ normal(0, 1);   
+#   phi ~ cauchy(0, 5);               // different options for phi  
+#   //phi ~ inv_gamma(.001, .001);
+#   //phi ~ uniform(0, 500);          // put upper on phi if using this
+#   // likelihood
+#   y_obs ~ beta(A_obs, B_obs);
+#   y_mis ~ beta(A_mis, B_mis);
+# }
+# "
+# write(model, file = "~/mysis/stanModels/betaRegressionMissing-glm.stan")
+sm <- stan_model("~/mysis/stanModels/betaRegression-glm.stan")
+```
+
+## Load the Data
+
+```{r}
+library(ggplot2)
+set.seed(123)
+
+fullData <- read.csv("~/mysis/data/lengthData.csv", skip=4)
+substr(as.character(fullData$Gender), 0, 1)
+fullData$Station
+
+males <- rep(0, 80)
+females <- rep(0, 80)
+unknowns <- rep(0, 80)
+size <- rep(0, 80)
+date_tmp <- rep(0, 80)
+
+idx <- 1
+for(i in unique(fullData$Sample.Label)){
+  tmp_data = subset(fullData, fullData$Sample.Label == i)
+  tmp = substr(as.character(tmp_data$Gender), 0, 1)
+  males[idx] <- sum(tmp == "M")
+  females[idx] <- sum(tmp == "F")
+  unknowns[idx] <- sum(tmp == "U")
+  size[idx] <- tmp_data$Size..m.[1]
+  date_tmp[idx] <- tmp_data$Date[1]
+  idx <- idx + 1
+}
+prop <- females / (females + males)
+prop_corrected <- (females + 0.5 * unknowns) / 
+                  (females + males + unknowns)
+prop[prop == 0] <- 0.01
+prop_corrected[prop_corrected == 0] <- 0.01
+## Correct for mislabeling
+date_tmp[70] <- 4
+date_tmp[72] <- 4
+date <- rep(0, 80)
+date[date_tmp == 1] <- 1
+date[date_tmp == 2] <- 1
+date[date_tmp == 3] <- 2
+date[date_tmp == 4] <- 3
+
+
+
+       
+# data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40, header = TRUE, stringsAsFactors=FALSE)
+
+# ratio <- c(as.numeric(data_one_way$full.3),    ## proportion of females full net
+#              as.numeric(data_one_way$half.3)) ## proportion of females half net
+# N <- length(ratio)
+
+# data_one_way$Sample.Date
+## Set improper values to NA
+
+
+date <- as.factor(date)
+net <- as.factor(size)
+data <- data.frame(prop=prop, date=date, net=net)
+X <- model.matrix(~ net * date)
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .)
+
+
+
+# date <- rep(as.factor(data_one_way$month), 2)
+# net <- as.factor(c(rep("full", 40), rep("half", 40)))
+# data <- data.frame(count=count, date=date, net=net)
+# X <- model.matrix(~ net * date)
+# ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .)
+
+```
+
+## Fit the Model
+
+```{r}
+m <- sampling(sm, data = list(N=80, y=prop, X=X, p=dim(X)[2]),
+  pars = c("beta", "phi"),
+  iter = 5000, chains = 4)
+
+m_corrected <- sampling(sm, data = list(N=80, y=prop_corrected, 
+                                        X=X, p=dim(X)[2]),
+  pars = c("beta", "phi"),
+  iter = 5000, chains = 4)
+```
+
+## Model output
+```{r}
+m
+```
+
+## Plot traceplots
+```{r}
+rstan::traceplot(m, inc_warmup = FALSE)
+
+rstan::traceplot(m_corrected, inc_warmup = FALSE)
+```
+
+## Plot fitted vs. simulated values
+
+```{r}
+e <- rstan::extract(m, pars = c("beta", "phi"))
+library(betareg)
+brmod <- betareg(y ~ . -1, data = data.frame(y=prop, X))
+summary(brmod)
+coefs <- c(brmod$coefficients$mean, brmod$coefficients$precision)
+par(mfrow = c(3, 3))
+for(i in 1:2) {
+  if(i == 1) {
+    for(j in 1:6) {
+    # for(j in 1:5) {
+      plot(density(e[[i]][,j]), main = paste("beta", j, sep=""))
+      # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+      abline(v = coefs[i + j - 1], lwd = 3, col = "red")
+    }
+  } else if(i == 2) {
+    plot(density(e[[i]]), main = paste("phi"))
+    # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+    abline(v = coefs[i + j - 1], lwd = 3, col = "red")
+  }
+}
+
+e_corrected <- rstan::extract(m_corrected, pars = c("beta", "phi"))
+library(betareg)
+brmod_corrected <- betareg(y ~ . -1, data = data.frame(y=prop_corrected, X))
+summary(brmod_corrected)
+coefs_corrected <- c(brmod_corrected$coefficients$mean, brmod_corrected$coefficients$precision)
+par(mfrow = c(3, 3))
+for(i in 1:2) {
+  if(i == 1) {
+    for(j in 1:6) {
+    # for(j in 1:5) {
+      plot(density(e_corrected[[i]][,j]), main = paste("beta", j, sep=""))
+      # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+      abline(v = coefs_corrected[i + j - 1], lwd = 3, col = "red")
+    }
+  } else if(i == 2) {
+    plot(density(e_corrected[[i]]), main = paste("phi"))
+    # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+    abline(v = coefs_corrected[i + j - 1], lwd = 3, col = "red")
+  }
+}
+```
+
+
+```{r}
+library(ggmcmc)
+library(coda)
+s <-  mcmc.list(lapply(1:ncol(m), function(x) mcmc(as.array(m)[,x,])))
+S <- ggs(s)
+
+ggs_caterpillar(S, family = "beta") 
+
+s_corrected <-  mcmc.list(lapply(1:ncol(m_corrected), function(x) mcmc(as.array(m_corrected)[,x,])))
+S_corrected <- ggs(s_corrected)
+
+ggs_caterpillar(S_corrected, family = "beta") 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# model for later comparison
+
+
+
+# simulate yRep as in BDA appendix C; could also do in generated quantities block of stan code
+for (s in 1:nSim){
+  betaS = betareg_sim$beta[s,]
+  muS = plogis(X%*%betaS)
+  A = muS*betareg_sim$phi[s]
+  B = (1-muS)*betareg_sim$phi[s]
+  yRep[s,] = rbeta(dat$N, A, B)
+}
+str(yRep)
+
+
+# example, as in BDA p.144, code from appendix C; probably not very useful
+par(mfrow=c(5,4), mar=c(4,4,2,2))
+hist(y, xlab='', main='y', 'FD')
+for (s in 1:19) hist(yRep[s,], xlab='', main=paste('yRep',s), 'FD')
+layout(1)
+
+# the following plots get at the same thing
+library(ggplot2); library(reshape2)
+gdat = data.frame(X,y)
+gdatyRep = melt(yRep)
+
+# individual observation distibutions; note the theme is my own (available on github), but otherwise you'll have to define yours.
+ggplot(aes(x=y), xlim=c(.2,1), data=gdat) + 
+  stat_density(geom='line', lwd=2, alpha=.2) + 
+  geom_line(aes(x=value,  group=as.factor(Var2), col=as.factor(Var2)), stat='density', data=gdatyRep, show_guide=F, alpha=.15) +
+  ggtheme
+
+# whole response distributions, comparison with betareg fits
+ggplot(aes(x=y), xlim=c(.2,1), data=gdat) + 
+  geom_line(aes(x=value,  group=as.factor(Var1), col=as.factor(Var1)), stat='density', data=gdatyRep, show_guide=F, alpha=.05) +
+  stat_density(geom='line', lwd=2, alpha=.2) + 
+  stat_density(aes(x=brmod$fitted), geom='line', col='darkred', lwd=2, alpha=.2) +
+  stat_density(aes(x=value), geom='line', col='#FF5500', lwd=2, alpha=.2, data=gdatyRep) +
+  ggtheme
+
+# Examine quantiles
+sapply(list(yRep=gdatyRep$value, brFitted=brmod$fitted.values, y=y), quantile, p=c(0,.1,.25,.5,.625,.75,.8,.9,.95,1))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

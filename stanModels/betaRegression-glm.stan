@@ -17,9 +17,10 @@ transformed parameters{
 model {
   // model calculations
   vector[N] Xbeta;                  // linear predictor
-  vector<lower=0,upper=1>[N] mu;    // transformed linear predictor
-  vector<lower=0>[N] A;             // parameter for beta distn
-  vector<lower=0>[N] B;             // parameter for beta distn
+//  vector<lower=0,upper=1>[N] mu;    // transformed linear predictor
+  vector[N] mu;    // transformed linear predictor
+  vector[N] A;             // parameter for beta distn
+  vector[N] B;             // parameter for beta distn
   Xbeta <- X * beta;
   for (i in 1:N) { 
     mu[i] <- inv_logit(Xbeta[i]);   

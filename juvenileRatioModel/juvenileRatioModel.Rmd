@@ -1,88 +1,39 @@
 ---
-title: "negativeBinomial"
+title: "Beta Regression"
 author: "John Tipton"
 date: "August 14, 2015"
 output: html_document
 ---
-
 # Write a beta GLM in STAN
 
 ```{r}
 library(rstan)
-model <- "
-// beta Regression
-data {
-  int<lower=1> N;                   // sample size
-  int<lower=1> p;                   // p predictors
-  vector<lower=0,upper=1>[N] y;     // response 
-  matrix[N, p] X;                   // predictor matrix
-}
-parameters {
-  vector[p] theta;                  // reg coefficients
-  real<lower=0> phi;                // dispersion parameter
-}
-transformed parameters{
-  vector[p] beta;
-  beta <- theta * 10;               // matt trick if desired
-}
-model {
-  // model calculations
-  vector[N] Xbeta;                  // linear predictor
-//  vector<lower=0,upper=1>[N] mu;    // transformed linear predictor
-  vector[N] mu;    // transformed linear predictor
-  vector[N] A;             // parameter for beta distn
-  vector[N] B;             // parameter for beta distn
-  Xbeta <- X * beta;
-  for (i in 1:N) { 
-    mu[i] <- inv_logit(Xbeta[i]);   
-  }
-  A <- mu * phi;
-  B <- (1.0 - mu) * phi;
-  // priors
-  theta ~ normal(0, 1);   
-  phi ~ cauchy(0, 5);               // different options for phi  
-  //phi ~ inv_gamma(.001, .001);
-  //phi ~ uniform(0, 500);          // put upper on phi if using this
-  // likelihood
-  y ~ beta(A, B);
-}
-"
-write(model, file = "~/mysis/stanModels/betaRegression-glm.stan")
 sm <- stan_model("~/mysis/stanModels/betaRegression-glm.stan")
 ```
 
-## Simulate some Data
+## Load the Data
 
 ```{r}
-library(betareg)
+library(ggplot2)
 set.seed(123)
-N = 80
-beta <- c(2, -1, 1, -2, -1)
-x0 <- rep(1, N)
-x1 <- c(rep(1, N/2), rep(0, N/2)) ## Indicator for net size
-x2 <- rep(c(rep(1, 10), rep(0, 30)), 2) ## Indicator for July
-x3 <- rep(c(rep(0, 10), rep(1, 20), rep(0, 10)), 2) ## Indicator for August
-# x4 <- rep(c(rep(0, 30), rep(1, 10)), 2) ## Indicator for September
-x12 <- x1 * x2 ## Interaction between net size and July
-x13 <- x1 * x3 ## Interaction between net size and August
-# X <- cbind(x0, x1, x2, x3, x12, x13)
-X <- cbind(x1, x2, x3, x12, x13)
+data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40, header = TRUE, stringsAsFactors=FALSE)
 
-mu = plogis(X%*%beta)  # add noise if desired + rnorm(N, sd=.01)
-phi = 10
-A = mu*phi
-B = (1-mu)*phi
-y = rbeta(N, A, B)
-layout(matrix(c(1, 1, 2, 3), 2, 2, byrow=TRUE))
-hist(y, "FD")
-hist(y[x1 == 0], "FD")
-hist(y[x1 == 1], "FD")
+prop <- c(as.numeric(data_one_way$full.2),    ## proportion of females full net
+             as.numeric(data_one_way$half.2)) ## proportion of females half net
+N <- length(prop)
+## Set improper values to NA
+
+date <- rep(as.factor(data_one_way$month), 2)
+net <- as.factor(c(rep("full", 40), rep("half", 40)))
+data <- data.frame(prop=prop, date=date, net=net)
+X <- model.matrix(~ net * date)
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .)
 ```
 
 ## Fit the Model
 
 ```{r}
-m <- sampling(sm, data = list(N = N, y = y, X = X, p=dim(X)[2]),
+m <- sampling(sm, data = list(N=N, y = prop, X = X, p=dim(X)[2]),
   pars = c("beta", "phi"),
   iter = 5000, chains = 4)
 ```
@@ -101,23 +52,22 @@ rstan::traceplot(m, inc_warmup = FALSE)
 
 ```{r}
 e <- rstan::extract(m, pars = c("beta", "phi"))
-true_pars <- c(beta = beta, phi = phi)
 library(betareg)
-brmod <- betareg(y ~ . -1, data = data.frame(y, X))
+brmod <- betareg(prop ~ . -1, data = data.frame(prop, X))
 summary(brmod)
 coefs <- c(brmod$coefficients$mean, brmod$coefficients$precision)
-par(mfrow = c(2, 3))
+par(mfrow = c(3, 3))
 for(i in 1:2) {
   if(i == 1) {
-#     for(j in 1:6) {
-    for(j in 1:5) {
-      plot(density(e[[i]][,j]), main = names(true_pars)[i + j - 1])
-      abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+    for(j in 1:6) {
+    # for(j in 1:5) {
+      plot(density(e[[i]][,j]), main = paste("beta", j, sep=""))
+      # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
       abline(v = coefs[i + j - 1], lwd = 3, col = "red")
     }
   } else if(i == 2) {
-    plot(density(e[[i]]), main = names(true_pars)[i + j - 1])
-    abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+    plot(density(e[[i]]), main = "phi")
+    # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
     abline(v = coefs[i + j - 1], lwd = 3, col = "red")
   }
 }
@@ -133,17 +83,11 @@ library(coda)
 s <-  mcmc.list(lapply(1:ncol(m), function(x) mcmc(as.array(m)[,x,])))
 S <- ggs(s)
 
-idx <- order(colMeans(e$beta))
 
-ggs_caterpillar(S, family = "beta") + 
-  geom_point(aes(y=1:5, x=beta[idx]), col = "red")
+ggs_caterpillar(S, family = "beta")  
+  
 ```
 
-
-```{r}
-hist(y[X[, 1] == 0])
-hist(y[X[, 1] == 1])
-```
 
 
 
