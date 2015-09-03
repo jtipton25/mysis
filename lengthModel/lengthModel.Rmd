@@ -23,7 +23,16 @@ date[date == 2] <- 1      ## collapse into monthly values
 date[date == 3] <- 2
 date[date == 4] <- 3
 date <- as.factor(date)
-plot(as.numeric(date), type='l', main = "Is this a data error?")
+plot(as.numeric(date), type='l', main = "Is this a data error? - yes?")
+## correct date mislabeling
+date <- as.numeric(data_length$Date)
+date[7330:7519] <- 4
+date[7559:7773] <- 4
+date[date == 2] <- 1      ## collapse into monthly values
+date[date == 3] <- 2
+date[date == 4] <- 3
+date <- as.factor(date)
+plot(as.numeric(date), type='l', main = "Data looks better")
 data <- data.frame(y=y, date=date, net=net, gender=gender)
 X <- model.matrix(~ net + date + gender, data=data)
 ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ date)
@@ -44,17 +53,24 @@ library(rstan, verbose=FALSE)
 model <- "
 // regression
 data {
-  int<lower=1> N;       // number of observations
-  int<lower=1> p;       // number of predictors
-  matrix[N, p] X;       // predictor
-  vector[N] y;          // response
-} parameters {
-  real<lower=0> s;      // regression standard deviation
-  vector[p] beta;       // mean parameters
+  int<lower=1> N;             // number of observations
+  int<lower=1> p;             // number of predictors
+  matrix[N, p] X;             // predictor
+  vector[N] y;                // response
+} parameters {  
+  real<lower=0> s;            // regression standard deviation
+  vector[p] beta;             // mean parameters
+  vector<lower=0>[p] gamma2;  // LASSO mixing parameters
+  real<lower=0> lambda2;      // LASSO shrinkage parameters
 } model {
   // priors:
   //s ~ cauchy(0, 20);
-  // beta ~ multi_normal(0, 100);
+  lambda2 ~ gamma(1, 1);      // Prior for weak LASSO shrinkage 
+  gamma2 ~ exponential(lambda2 / 2.0);
+  for(i in 2:p){
+    beta[i] ~ normal(0, s * sqrt(gamma2[i]));
+  }
+
   // data model:
   y ~ normal(X * beta, s);
 }
@@ -67,7 +83,7 @@ sm <- stan("~/mysis/stanModels/length.stan",
 ```
 ## Fit the Model
 
-```{r, echo=FALSE, cach=TRUE}
+```{r, echo=FALSE, cache=TRUE}
 library(parallel)
 estimate_params <- function(model, data, pars = pars, iter=5000){
   sflist <- mclapply(1:4, mc.cores = 4,
@@ -82,7 +98,7 @@ estimate_params <- function(model, data, pars = pars, iter=5000){
 #   pars = c("beta", "s"),
 #   iter = 1000, chains = 4)
 m <- estimate_params(sm, data = list(N=length(y), p=dim(X)[2], y=y, X=X),
-                     pars = c("beta", "s"))
+                     pars = c("beta", "s", "gamma2", "lambda2"))
 ```
 
 ## Model output
@@ -125,7 +141,7 @@ ggs_caterpillar(S, family = "beta")
 
 ```{r}
 library(Gmisc)
-tableData <- cbind(summary(s)$statistics[1:8, 1], summary(s)$quantiles[1:8, c(1, 5)])
+tableData <- cbind(summary(s)$statistics[1:(e[[i]])[2] + 1), 1], summary(s)$quantiles[1:(e[[i]])[2] + 1), c(1, 5)])
 htmlTable(x=round(tableData, digits=2),
           caption=paste("Regression parameter estimates and CI's"),
           header = c("Estimate", "Lower 95% CI", "Upper 95% CI"),
