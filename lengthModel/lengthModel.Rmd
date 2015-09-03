@@ -5,65 +5,69 @@ date: "August 14, 2015"
 output: html_document
 ---
 
-## Load the data
+## Load the data - are these dates errors or are the samples that were found later in the season
 
 ```{r}
 library(ggplot2)
+library(stringr)
 set.seed(123)
 data_length <- read.csv("~/mysis/data/lengthData.csv", skip = 4, header = TRUE)
 net <- data_length$Size..m.
-length <- data_length$Length..mm.
-gender <- as.factor(substr(as.character(data_length$Gender), 0, 1))
-# data_one_way$full ## count per m^2 for full net
-# data_one_way$half ## count per m^2 for half net
-count <- c(data_one_way$full.5,  ## count for full net
-            4 * data_one_way$half.5) ## count for half net adjusted for radius
-date <- rep(as.factor(data_one_way$month), 2)
-net <- as.factor(c(rep("full", 40), rep("half", 40)))
-data <- data.frame(count=count, date=date, net=net)
-X <- model.matrix(~ net * date)
-ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ .)
+y <- data_length$Length..mm.
+gender <- as.factor(substr(str_trim(as.character(data_length$Gender)), 0, 1))
+                       ## remove whitespace from string, then truncate into 
+                       ## broad gender classes, not subclasses
+
+date <- as.numeric(data_length$Date)
+date[date == 2] <- 1      ## collapse into monthly values
+date[date == 3] <- 2
+date[date == 4] <- 3
+date <- as.factor(date)
+plot(as.numeric(date), type='l', main = "Is this a data error?")
+data <- data.frame(y=y, date=date, net=net, gender=gender)
+X <- model.matrix(~ net + date + gender, data=data)
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ date)
 ```
 
-# Write a negative binomial GLM in STAN
+# Write the model
+$t$ = time
+$i$ = net size
+$j$ = age class
+$k$ = replicate
+
+$$
+y_{tijk} \sim \mbox{N}(\mu_{tij}, \sigma^2_{tij})
+$$
 
 ```{r, echo=FALSE}
 library(rstan, verbose=FALSE)
-# model <- "
-# // Negative Binomial GLM
-# // see Gelman and Hill (2007)
-# data {
-#   int<lower=1> N;       // number of observations
-#   int<lower=0> p;
-#   matrix[N, p] X;       // predictor
-#   int<lower=0> y[N];    // response
-# } transformed data {
-#   vector[p] J;
-#   matrix[p, p] I_p;
-#   // calculate placeholder values
-#   J <- rep_vector(0, p);
-#   I_p <- diag_matrix(rep_vector(1, p));
-# }
-# parameters {
-#   real<lower=0> phi;   // Negative Binomial dispersion parameter
-#   vector[p] beta;      // Negative Binomial mean parameters
-# } model {
-#   // priors:
-#   phi ~ cauchy(0, 20);
-#   beta ~ multi_normal(J, 100 * I_p);
-#   // data model:
-#   y ~ neg_binomial_2_log(X * beta, phi);
-# }
-# "
-# write(model, file = "~/mysis/stanModels/negbin-glm.stan")
-# sm <- stan_model("~/mysis/stanModels/negbin-glm.stan")
-sm <- stan("~/mysis/stanModels/negbin-glm.stan", 
-           data=list(N = length(count), y = count, X = X, p=dim(X)[2]),
+model <- "
+// regression
+data {
+  int<lower=1> N;       // number of observations
+  int<lower=1> p;       // number of predictors
+  matrix[N, p] X;       // predictor
+  vector[N] y;          // response
+} parameters {
+  real<lower=0> s;      // regression standard deviation
+  vector[p] beta;       // mean parameters
+} model {
+  // priors:
+  //s ~ cauchy(0, 20);
+  // beta ~ multi_normal(0, 100);
+  // data model:
+  y ~ normal(X * beta, s);
+}
+"
+write(model, file = "~/mysis/stanModels/length.stan")
+# sm <- stan_model("~/mysis/stanModels/length.stan")
+sm <- stan("~/mysis/stanModels/length.stan", 
+           data=list(N=length(y), p=dim(X)[2], y=y, X=X),
            chains=0)
 ```
 ## Fit the Model
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, cach=TRUE}
 library(parallel)
 estimate_params <- function(model, data, pars = pars, iter=5000){
   sflist <- mclapply(1:4, mc.cores = 4,
@@ -74,10 +78,11 @@ estimate_params <- function(model, data, pars = pars, iter=5000){
   fit <- sflist2stanfit(sflist)
   return(fit)
 }
-# m <- sampling(sm, data = list(N = length(count), y = count, X = X, p=dim(X)[2]),
-#   pars = c("beta", "phi"),
-#   iter = 5000, chains = 4)
-m <- estimate_params(sm, data = list(N = length(count), y = count, X = X, p=dim(X)[2]),  pars = c("beta", "phi"))
+# m <- sampling(sm, data = list(N=length(y), p=dim(X)[2], y=y, X=X),
+#   pars = c("beta", "s"),
+#   iter = 1000, chains = 4)
+m <- estimate_params(sm, data = list(N=length(y), p=dim(X)[2], y=y, X=X),
+                     pars = c("beta", "s"))
 ```
 
 ## Model output
@@ -93,16 +98,15 @@ rstan::traceplot(m, inc_warmup = FALSE)
 ## Plot fitted vs. simulated values
 
 ```{r}
-e <- rstan::extract(m, pars = c("beta", "phi"))
-par(mfrow = c(2, 3))
+e <- rstan::extract(m, pars = c("beta", "s"))
+par(mfrow = c(3, 3))
 for(i in 1:2) {
   if(i == 1) {
-#     for(j in 1:6) {
-    for(j in 1:5) {
+    for(j in 1:dim(e[[i]])[2]) {
       plot(density(e[[i]][,j]), main = paste("beta", j, sep=""))
     }
   } else if(i == 2) {
-    plot(density(e[[i]]), main = "phi")
+    plot(density(e[[i]]), main = "s")
   }
 }
 ```
@@ -121,7 +125,7 @@ ggs_caterpillar(S, family = "beta")
 
 ```{r}
 library(Gmisc)
-tableData <- cbind(summary(s)$statistics[1:7, 1], summary(s)$quantiles[1:7, c(1, 5)])
+tableData <- cbind(summary(s)$statistics[1:8, 1], summary(s)$quantiles[1:8, c(1, 5)])
 htmlTable(x=round(tableData, digits=2),
           caption=paste("Regression parameter estimates and CI's"),
           header = c("Estimate", "Lower 95% CI", "Upper 95% CI"),
@@ -130,8 +134,9 @@ htmlTable(x=round(tableData, digits=2),
                     "Net Size",
                     "August",
                     "September",
-                    "Net Size by August",
-                    "Net Size by September",
-                    "Overdispersion Parameter"))
+                    "Juvenile",
+                    "Male",
+                    "Unknown",
+                    "standard deviation"))
 ```
 
