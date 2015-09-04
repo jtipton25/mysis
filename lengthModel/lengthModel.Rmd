@@ -72,7 +72,9 @@ data {
   }
 
   // data model:
-  y ~ normal(X * beta, s);
+  for(i in 1:N){
+    y[i] ~ normal(X[i] * beta, s[idx[i]]);
+  }
 }
 "
 write(model, file = "~/mysis/stanModels/length.stan")
