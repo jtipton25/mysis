@@ -141,7 +141,8 @@ ggs_caterpillar(S, family = "beta")
 
 ```{r}
 library(Gmisc)
-tableData <- cbind(summary(s)$statistics[1:(e[[i]])[2] + 1), 1], summary(s)$quantiles[1:(e[[i]])[2] + 1), c(1, 5)])
+tableData <- cbind(summary(s)$statistics[1:(dim(e[[1]])[2] + 1), 1],
+                   summary(s)$quantiles[1:(dim(e[[1]])[2] + 1), c(1, 5)])
 htmlTable(x=round(tableData, digits=2),
           caption=paste("Regression parameter estimates and CI's"),
           header = c("Estimate", "Lower 95% CI", "Upper 95% CI"),
