@@ -92,15 +92,21 @@ rstan::traceplot(m, inc_warmup = FALSE)
 
 ```{r}
 e <- rstan::extract(m, pars = c("beta", "phi"))
+library(MASS)
+nbmod <- glm.nb(y ~ . -1, data = data.frame(y=count, X))
+summary(nbmod)
+coefs <- c(nbmod$coefficients, nbmod$theta)
 par(mfrow = c(2, 3))
 for(i in 1:2) {
   if(i == 1) {
 #     for(j in 1:6) {
     for(j in 1:5) {
       plot(density(e[[i]][,j]), main = paste("beta", j, sep=""))
+      abline(v = coefs[j], lwd = 3, col = "red")
     }
   } else if(i == 2) {
     plot(density(e[[i]]), main = "phi")
+    abline(v = coefs[dim(e[[i]])[2] + 1], lwd = 3, col = "red")
   }
 }
 ```

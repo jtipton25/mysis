@@ -1,0 +1,52 @@
+---
+title: "Mysis analysis"
+author: "John Tipton"
+date: "September 9, 2015"
+output: html_document
+---
+```{r loadLibraries, echo=FALSE, include=FALSE, message=FALSE}
+library(knitr)
+library(ggplot2)
+library(Gmisc)
+```
+## Model for Total counts for each net
+```{r totalCount, echo=FALSE, include=FALSE, message=FALSE}
+set.seed(123)
+data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40, header = TRUE)
+count <- c(data_one_way$full.5,  ## count for full net
+            4 * data_one_way$half.5) ## count for half net adjusted for radius
+date <- rep(as.factor(data_one_way$month), 2)
+station <- rep(data_one_way$Station, 2)
+net <- as.factor(c(rep("full", 40), rep("half", 40)))
+data <- data.frame(count=count, date=date, net=net)
+X <- model.matrix(~ net * date)
+ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ .)
+library(MASS)
+summary(nbmod <- glm.nb(y ~ . -1, data = data.frame(y=count, X)))
+summary(qpmod <- glmmPQL(count ~ net * date, random=~1|station, family=neg.bin(2.6)))
+summary(glmmPQL(count ~ net * date, random=~1|station, family=neg.bin(0.1)))
+summary(glmmPQL(count ~ net * date, random=~1|station, family=neg.bin(10)))
+coefs <- c(nbmod$coefficients, nbmod$theta)
+```
+
+To test for a change in total counts between the two net sizes, we construct a negative binomal model that examines the effects of net size, date of sampling, the interaction between net size and sampling data while including a random effect for station. The results shown below show that there is no effect on the number of counts observed between the two net sizes after adjusting for the size of the nets.
+
+
+
+```{r countModelResults, echo=FALSE}
+tableData <- cbind(summary(nbmod)$coeff[1:6, ])
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
+                         "Net Size * August", "Net Size * September")
+# htmlTable(x=round(tableData, digits=2),
+#           caption=paste("Negative Binomial Regression parameter estimates"),
+#           header = c("  Estimate  ", "  Std. Error  ", "  z value  ", "  p-value  "),
+#           rowlabel = "Variable",
+#           rnames = c("Intercept",
+#                     "Net Size",
+#                     "August",
+#                     "September",
+#                     "Net Size * August",
+#                     "Net Size * September"))
+kable(tableData, digits = 4, format="pandoc")
+```
