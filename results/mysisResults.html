@@ -75,7 +75,7 @@ img {
 
 <div id="model-for-total-counts-for-each-net" class="section level2">
 <h2>Model for Total counts for each net</h2>
-<p>To test for a change in total counts between the two net sizes, we construct a negative binomal model that examines the effects of net size, date of sampling, the interaction between net size and sampling data while including a random effect for station. The results shown below show that there is no effect on the number of counts observed between the two net sizes after adjusting for the size of the nets.</p>
+<p>To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=0.9549).</p>
 <table>
 <thead>
 <tr class="header">
@@ -128,6 +128,217 @@ img {
 <td align="right">0.3419</td>
 <td align="right">-0.7997</td>
 <td align="right">0.4239</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-for-counts-by-gender" class="section level2">
+<h2>Model for counts by gender</h2>
+<p>To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=0.6783).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Estimate</th>
+<th align="right">Std. Error</th>
+<th align="right">z value</th>
+<th align="right">Pr(&gt;|z|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Intercept</td>
+<td align="right">3.3874</td>
+<td align="right">0.1478</td>
+<td align="right">22.9204</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size</td>
+<td align="right">-0.0817</td>
+<td align="right">0.1970</td>
+<td align="right">-0.4148</td>
+<td align="right">0.6783</td>
+</tr>
+<tr class="odd">
+<td align="left">Females</td>
+<td align="right">-1.0353</td>
+<td align="right">0.2003</td>
+<td align="right">-5.1683</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Juveniles</td>
+<td align="right">1.1826</td>
+<td align="right">0.1955</td>
+<td align="right">6.0479</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown Gender</td>
+<td align="right">0.0178</td>
+<td align="right">0.1968</td>
+<td align="right">0.0903</td>
+<td align="right">0.9281</td>
+</tr>
+<tr class="even">
+<td align="left">August</td>
+<td align="right">0.1343</td>
+<td align="right">0.1211</td>
+<td align="right">1.1095</td>
+<td align="right">0.2672</td>
+</tr>
+<tr class="odd">
+<td align="left">September</td>
+<td align="right">0.3540</td>
+<td align="right">0.1207</td>
+<td align="right">2.9329</td>
+<td align="right">0.0034</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size * Females</td>
+<td align="right">0.3341</td>
+<td align="right">0.2826</td>
+<td align="right">1.1824</td>
+<td align="right">0.2371</td>
+</tr>
+<tr class="odd">
+<td align="left">Net Size * Juveniles</td>
+<td align="right">0.0362</td>
+<td align="right">0.2767</td>
+<td align="right">0.1310</td>
+<td align="right">0.8958</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size * Unknowns</td>
+<td align="right">0.0927</td>
+<td align="right">0.2785</td>
+<td align="right">0.3329</td>
+<td align="right">0.7392</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-for-proportion-of-juveniles" class="section level2">
+<h2>Model for proportion of juveniles</h2>
+<p>To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=0.7829).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Estimate</th>
+<th align="right">Std. Error</th>
+<th align="right">z value</th>
+<th align="right">Pr(&gt;|z|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Intercept</td>
+<td align="right">0.6326</td>
+<td align="right">0.1546</td>
+<td align="right">4.0928</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size</td>
+<td align="right">0.0602</td>
+<td align="right">0.2186</td>
+<td align="right">0.2755</td>
+<td align="right">0.7829</td>
+</tr>
+<tr class="odd">
+<td align="left">August</td>
+<td align="right">-0.9367</td>
+<td align="right">0.2627</td>
+<td align="right">-3.5657</td>
+<td align="right">0.0004</td>
+</tr>
+<tr class="even">
+<td align="left">September</td>
+<td align="right">-2.0965</td>
+<td align="right">0.2956</td>
+<td align="right">-7.0922</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">Net Size * August</td>
+<td align="right">-0.2113</td>
+<td align="right">0.3723</td>
+<td align="right">-0.5676</td>
+<td align="right">0.5703</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size * September</td>
+<td align="right">0.5523</td>
+<td align="right">0.3992</td>
+<td align="right">1.3834</td>
+<td align="right">0.1666</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="length-model" class="section level2">
+<h2>Length model</h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Estimate</th>
+<th align="right">Std. Error</th>
+<th align="right">z value</th>
+<th align="right">Pr(&gt;|z|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Intercept</td>
+<td align="right">15.7378</td>
+<td align="right">0.1022</td>
+<td align="right">154.0491</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size</td>
+<td align="right">0.2225</td>
+<td align="right">0.0863</td>
+<td align="right">2.5767</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="odd">
+<td align="left">August</td>
+<td align="right">0.9799</td>
+<td align="right">0.0459</td>
+<td align="right">21.3365</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">September</td>
+<td align="right">0.9026</td>
+<td align="right">0.0466</td>
+<td align="right">19.3675</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">Juvenile</td>
+<td align="right">-8.9771</td>
+<td align="right">0.0659</td>
+<td align="right">-136.1301</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">Male</td>
+<td align="right">-1.6381</td>
+<td align="right">0.0724</td>
+<td align="right">-22.6212</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown Gender</td>
+<td align="right">-4.3833</td>
+<td align="right">0.0708</td>
+<td align="right">-61.8702</td>
+<td align="right">0.00</td>
 </tr>
 </tbody>
 </table>
