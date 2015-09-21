@@ -75,7 +75,7 @@ img {
 
 <div id="model-for-total-counts-for-each-net" class="section level2">
 <h2>Model for Total counts for each net</h2>
-<p>To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=0.9549).</p>
+<p>To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=0.955).</p>
 <table>
 <thead>
 <tr class="header">
@@ -134,7 +134,7 @@ img {
 </div>
 <div id="model-for-counts-by-gender" class="section level2">
 <h2>Model for counts by gender</h2>
-<p>To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=0.6783).</p>
+<p>To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling, the interaction between net size and sampling date, and the interaction between sampling date and gender. The results shown below show that there is no evidence of an interaction between net size and sampling date and no evidence of an interaction between net size and gender.</p>
 <table>
 <thead>
 <tr class="header">
@@ -148,80 +148,262 @@ img {
 <tbody>
 <tr class="odd">
 <td align="left">Intercept</td>
-<td align="right">3.3874</td>
-<td align="right">0.1478</td>
-<td align="right">22.9204</td>
+<td align="right">3.4266</td>
+<td align="right">0.1576</td>
+<td align="right">21.7465</td>
 <td align="right">0.0000</td>
 </tr>
 <tr class="even">
 <td align="left">Net Size</td>
-<td align="right">-0.0817</td>
-<td align="right">0.1970</td>
-<td align="right">-0.4148</td>
-<td align="right">0.6783</td>
+<td align="right">-0.0678</td>
+<td align="right">0.1956</td>
+<td align="right">-0.3468</td>
+<td align="right">0.7287</td>
 </tr>
 <tr class="odd">
 <td align="left">Females</td>
-<td align="right">-1.0353</td>
-<td align="right">0.2003</td>
-<td align="right">-5.1683</td>
+<td align="right">-1.2668</td>
+<td align="right">0.2201</td>
+<td align="right">-5.7550</td>
 <td align="right">0.0000</td>
 </tr>
 <tr class="even">
 <td align="left">Juveniles</td>
-<td align="right">1.1826</td>
-<td align="right">0.1955</td>
-<td align="right">6.0479</td>
+<td align="right">1.5758</td>
+<td align="right">0.2119</td>
+<td align="right">7.4360</td>
 <td align="right">0.0000</td>
 </tr>
 <tr class="odd">
 <td align="left">Unknown Gender</td>
-<td align="right">0.0178</td>
-<td align="right">0.1968</td>
-<td align="right">0.0903</td>
-<td align="right">0.9281</td>
+<td align="right">-0.5729</td>
+<td align="right">0.2156</td>
+<td align="right">-2.6573</td>
+<td align="right">0.0079</td>
 </tr>
 <tr class="even">
 <td align="left">August</td>
-<td align="right">0.1343</td>
-<td align="right">0.1211</td>
-<td align="right">1.1095</td>
-<td align="right">0.2672</td>
+<td align="right">0.1567</td>
+<td align="right">0.2394</td>
+<td align="right">0.6546</td>
+<td align="right">0.5127</td>
 </tr>
 <tr class="odd">
 <td align="left">September</td>
-<td align="right">0.3540</td>
-<td align="right">0.1207</td>
-<td align="right">2.9329</td>
-<td align="right">0.0034</td>
+<td align="right">0.1468</td>
+<td align="right">0.2388</td>
+<td align="right">0.6148</td>
+<td align="right">0.5387</td>
 </tr>
 <tr class="even">
 <td align="left">Net Size * Females</td>
-<td align="right">0.3341</td>
-<td align="right">0.2826</td>
-<td align="right">1.1824</td>
-<td align="right">0.2371</td>
+<td align="right">0.3123</td>
+<td align="right">0.2519</td>
+<td align="right">1.2398</td>
+<td align="right">0.2151</td>
 </tr>
 <tr class="odd">
 <td align="left">Net Size * Juveniles</td>
-<td align="right">0.0362</td>
-<td align="right">0.2767</td>
-<td align="right">0.1310</td>
-<td align="right">0.8958</td>
+<td align="right">0.0037</td>
+<td align="right">0.2451</td>
+<td align="right">0.0150</td>
+<td align="right">0.9880</td>
 </tr>
 <tr class="even">
 <td align="left">Net Size * Unknowns</td>
-<td align="right">0.0927</td>
-<td align="right">0.2785</td>
-<td align="right">0.3329</td>
-<td align="right">0.7392</td>
+<td align="right">0.0879</td>
+<td align="right">0.2475</td>
+<td align="right">0.3553</td>
+<td align="right">0.7224</td>
+</tr>
+<tr class="odd">
+<td align="left">Net Size * August</td>
+<td align="right">-0.3157</td>
+<td align="right">0.2152</td>
+<td align="right">-1.4666</td>
+<td align="right">0.1425</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size * September</td>
+<td align="right">0.2531</td>
+<td align="right">0.2145</td>
+<td align="right">1.1800</td>
+<td align="right">0.2380</td>
+</tr>
+<tr class="odd">
+<td align="left">Females * August</td>
+<td align="right">0.3251</td>
+<td align="right">0.3091</td>
+<td align="right">1.0517</td>
+<td align="right">0.2929</td>
+</tr>
+<tr class="even">
+<td align="left">Juveniles * August</td>
+<td align="right">-0.7032</td>
+<td align="right">0.3003</td>
+<td align="right">-2.3420</td>
+<td align="right">0.0192</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown Gender * August</td>
+<td align="right">1.0094</td>
+<td align="right">0.3029</td>
+<td align="right">3.3322</td>
+<td align="right">0.0009</td>
+</tr>
+<tr class="even">
+<td align="left">Females * September</td>
+<td align="right">0.5445</td>
+<td align="right">0.3062</td>
+<td align="right">1.7786</td>
+<td align="right">0.0753</td>
+</tr>
+<tr class="odd">
+<td align="left">Juveniles * September</td>
+<td align="right">-1.5523</td>
+<td align="right">0.3005</td>
+<td align="right">-5.1664</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Unknown Gender * September</td>
+<td align="right">0.9672</td>
+<td align="right">0.3018</td>
+<td align="right">3.2043</td>
+<td align="right">0.0014</td>
+</tr>
+</tbody>
+</table>
+<p>Thus, we refit the model without the interaction between net size and sampling date. On this reduced model, the results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=0.636).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Estimate</th>
+<th align="right">Std. Error</th>
+<th align="right">z value</th>
+<th align="right">Pr(&gt;|z|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Intercept</td>
+<td align="right">3.4341</td>
+<td align="right">0.1525</td>
+<td align="right">22.5222</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size</td>
+<td align="right">-0.0834</td>
+<td align="right">0.1760</td>
+<td align="right">-0.4739</td>
+<td align="right">0.6356</td>
+</tr>
+<tr class="odd">
+<td align="left">Females</td>
+<td align="right">-1.2681</td>
+<td align="right">0.2217</td>
+<td align="right">-5.7202</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Juveniles</td>
+<td align="right">1.5772</td>
+<td align="right">0.2136</td>
+<td align="right">7.3834</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown Gender</td>
+<td align="right">-0.5726</td>
+<td align="right">0.2172</td>
+<td align="right">-2.6358</td>
+<td align="right">0.0084</td>
+</tr>
+<tr class="even">
+<td align="left">August</td>
+<td align="right">0.0092</td>
+<td align="right">0.2159</td>
+<td align="right">0.0425</td>
+<td align="right">0.9661</td>
+</tr>
+<tr class="odd">
+<td align="left">September</td>
+<td align="right">0.2911</td>
+<td align="right">0.2149</td>
+<td align="right">1.3543</td>
+<td align="right">0.1756</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size * Females</td>
+<td align="right">0.3160</td>
+<td align="right">0.2537</td>
+<td align="right">1.2454</td>
+<td align="right">0.2130</td>
+</tr>
+<tr class="odd">
+<td align="left">Net Size * Juveniles</td>
+<td align="right">0.0019</td>
+<td align="right">0.2470</td>
+<td align="right">0.0079</td>
+<td align="right">0.9937</td>
+</tr>
+<tr class="even">
+<td align="left">Net Size * Unknowns</td>
+<td align="right">0.0877</td>
+<td align="right">0.2494</td>
+<td align="right">0.3516</td>
+<td align="right">0.7252</td>
+</tr>
+<tr class="odd">
+<td align="left">Females * August</td>
+<td align="right">0.3390</td>
+<td align="right">0.3113</td>
+<td align="right">1.0891</td>
+<td align="right">0.2761</td>
+</tr>
+<tr class="even">
+<td align="left">Juveniles * August</td>
+<td align="right">-0.7198</td>
+<td align="right">0.3026</td>
+<td align="right">-2.3784</td>
+<td align="right">0.0174</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown Gender * August</td>
+<td align="right">1.0143</td>
+<td align="right">0.3052</td>
+<td align="right">3.3231</td>
+<td align="right">0.0009</td>
+</tr>
+<tr class="even">
+<td align="left">Females * September</td>
+<td align="right">0.5426</td>
+<td align="right">0.3084</td>
+<td align="right">1.7596</td>
+<td align="right">0.0785</td>
+</tr>
+<tr class="odd">
+<td align="left">Juveniles * September</td>
+<td align="right">-1.5839</td>
+<td align="right">0.3029</td>
+<td align="right">-5.2294</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Unknown Gender * September</td>
+<td align="right">0.9655</td>
+<td align="right">0.3042</td>
+<td align="right">3.1741</td>
+<td align="right">0.0015</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div id="model-for-proportion-of-juveniles" class="section level2">
 <h2>Model for proportion of juveniles</h2>
-<p>To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=0.7829).</p>
+<p>To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=0.783).</p>
 <table>
 <thead>
 <tr class="header">
@@ -293,55 +475,98 @@ img {
 <tbody>
 <tr class="odd">
 <td align="left">Intercept</td>
-<td align="right">15.7378</td>
-<td align="right">0.1022</td>
-<td align="right">154.0491</td>
-<td align="right">0.00</td>
+<td align="right">16.5797</td>
+<td align="right">0.1113</td>
+<td align="right">148.9015</td>
+<td align="right">0.0000</td>
 </tr>
 <tr class="even">
 <td align="left">Net Size</td>
-<td align="right">0.2225</td>
-<td align="right">0.0863</td>
-<td align="right">2.5767</td>
-<td align="right">0.01</td>
+<td align="right">0.2067</td>
+<td align="right">0.0756</td>
+<td align="right">2.7339</td>
+<td align="right">0.0063</td>
 </tr>
 <tr class="odd">
-<td align="left">August</td>
-<td align="right">0.9799</td>
-<td align="right">0.0459</td>
-<td align="right">21.3365</td>
-<td align="right">0.00</td>
+<td align="left">Females</td>
+<td align="right">0.4999</td>
+<td align="right">0.1447</td>
+<td align="right">3.4559</td>
+<td align="right">0.0006</td>
 </tr>
 <tr class="even">
-<td align="left">September</td>
-<td align="right">0.9026</td>
-<td align="right">0.0466</td>
-<td align="right">19.3675</td>
-<td align="right">0.00</td>
-</tr>
-<tr class="odd">
-<td align="left">Juvenile</td>
-<td align="right">-8.9771</td>
-<td align="right">0.0659</td>
-<td align="right">-136.1301</td>
-<td align="right">0.00</td>
-</tr>
-<tr class="even">
-<td align="left">Male</td>
-<td align="right">-1.6381</td>
-<td align="right">0.0724</td>
-<td align="right">-22.6212</td>
-<td align="right">0.00</td>
+<td align="left">Juveniles</td>
+<td align="right">-0.7003</td>
+<td align="right">0.1167</td>
+<td align="right">-5.9994</td>
+<td align="right">0.0000</td>
 </tr>
 <tr class="odd">
 <td align="left">Unknown Gender</td>
-<td align="right">-4.3833</td>
-<td align="right">0.0708</td>
-<td align="right">-61.8702</td>
-<td align="right">0.00</td>
+<td align="right">-10.1138</td>
+<td align="right">0.0900</td>
+<td align="right">-112.3726</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">August</td>
+<td align="right">-1.9500</td>
+<td align="right">0.1020</td>
+<td align="right">-19.1089</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">September</td>
+<td align="right">-4.7530</td>
+<td align="right">0.1107</td>
+<td align="right">-42.9229</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Females * August</td>
+<td align="right">1.1029</td>
+<td align="right">0.1547</td>
+<td align="right">7.1280</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">Juveniles * August</td>
+<td align="right">3.2424</td>
+<td align="right">0.1364</td>
+<td align="right">23.7725</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Unknown Gender * August</td>
+<td align="right">-0.5037</td>
+<td align="right">0.1731</td>
+<td align="right">-2.9100</td>
+<td align="right">0.0036</td>
+</tr>
+<tr class="odd">
+<td align="left">Females * September</td>
+<td align="right">1.1165</td>
+<td align="right">0.1427</td>
+<td align="right">7.8269</td>
+<td align="right">0.0000</td>
+</tr>
+<tr class="even">
+<td align="left">Juveniles * September</td>
+<td align="right">-0.3969</td>
+<td align="right">0.1716</td>
+<td align="right">-2.3130</td>
+<td align="right">0.0207</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown Gender * September</td>
+<td align="right">0.5368</td>
+<td align="right">0.1442</td>
+<td align="right">3.7235</td>
+<td align="right">0.0002</td>
 </tr>
 </tbody>
 </table>
+<p>We see that there is a significant effect of net size on mean length caught (p = 0.006) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (0.207mm) and the sample size is large (n = 9127). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of 0.207mm on a species with a mean length of 10.351mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.</p>
 </div>
 
 

@@ -5,6 +5,7 @@ date: "September 9, 2015"
 output: html_document
 ---
 ```{r loadLibraries, echo=FALSE, include=FALSE, message=FALSE}
+options(digits=3)
 library(knitr)
 library(ggplot2)
 library(Gmisc)
@@ -95,28 +96,50 @@ net <- as.factor(size)
 count[rep(net, times=4) == 0.5] <- count[rep(net, times=4) == 0.5] * 4
 data <- data.frame(count=count, date=rep(date, times=4), net=rep(net, times=4), gender=gender)
 # X <- model.matrix(~ net * date + net * gender + gender * date, data=data)
-X <- model.matrix(~ net * gender + date, data=data)
+X <- model.matrix(~ net * gender + net * date + gender * date, data=data)
 ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ gender)
 ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ date)
 ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(gender ~ date)
 nbmod <- glm.nb(y ~ . -1, data = data.frame(y=count, X))
 ```
 
-To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
 
+To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling, the interaction between net size and sampling date, and the interaction between sampling date and gender. The results shown below show that there is no evidence of an interaction between net size and sampling date and no evidence of an interaction between net size and gender. 
 ```{r sexResults, echo=FALSE, cache=TRUE}
-
-
 tableData <- cbind(summary(nbmod)$coeff)
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
 rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
                          "Unknown Gender", "August", "September", 
                          "Net Size * Females", "Net Size * Juveniles", 
-                         "Net Size * Unknowns")
-
-
+                         "Net Size * Unknowns", "Net Size * August",
+                         "Net Size * September",
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
 kable(tableData, digits = 4, format="pandoc")
 ```
+
+
+```{r, echo=FALSE, include=FALSE, message=FALSE, cache=TRUE}
+X <- model.matrix(~ net * gender + gender * date, data=data)
+nbmod <- glm.nb(y ~ . -1, data = data.frame(y=count, X))
+```
+Thus, we refit the model without the interaction between net size and sampling date. On this reduced model, the results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+```{r sexResultsReduced, echo=FALSE, cache=TRUE}
+tableData <- cbind(summary(nbmod)$coeff)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Net Size * Females", "Net Size * Juveniles", 
+                         "Net Size * Unknowns", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+kable(tableData, digits = 4, format="pandoc")
+```
+
 
 
 ## Model for proportion of juveniles
@@ -161,11 +184,11 @@ gender <- as.factor(substr(str_trim(as.character(data_length$Gender)), 0, 1))
                        ## remove whitespace from string, then truncate into 
                        ## broad gender classes, not subclasses
 
-date <- as.numeric(data_length$Date)
-date[date == 2] <- 1      ## collapse into monthly values
-date[date == 3] <- 2
-date[date == 4] <- 3
-date <- as.factor(date)
+# date <- as.numeric(data_length$Date)
+# date[date == 2] <- 1      ## collapse into monthly values
+# date[date == 3] <- 2
+# date[date == 4] <- 3
+# date <- as.factor(date)
 station <- data_length$Station
 # plot(as.numeric(date), type='l', main = "Is this a data error? - yes?")
 ## correct date mislabeling
@@ -177,26 +200,61 @@ date[date == 3] <- 2
 date[date == 4] <- 3
 date <- as.factor(date)
 # plot(as.numeric(date), type='l', main = "Data looks better")
-data <- data.frame(y=y, date=date, net=net, gender=gender)
+data <- data.frame(y=y, date=date, net=as.factor(net), gender=gender)
 X <- model.matrix(~ net + date + gender, data=data)
-ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ date)
+levels(data$date) <- c("July", "August", "Septempber")
+levels(data$net) <- c("Small Net", "Large Net")
+levels(data$gender) <- c("Female", "Juvenile", "Male", "Unknown")
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ date) 
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ gender)
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(date ~ gender)
 idx <- attr(uniquecombs(X), "index")
-summary(lmmod <- lm(y ~ net + date + gender))
+summary(lmmod <- lm(y ~ net + date * gender))
 library(lme4)
-summary(lmemod <- lmer(y ~ net + date + gender + (1|station)))
-rlmmod <- rlm(y ~ net + date + gender)
+# summary(lmemod <- lmer(y ~ net * date + net * gender + date * gender + (1|station)))
+# summary(lmemod <- lmer(y ~ net + date * gender + (1|station)))
+# summary(rlmmod <- rlm(y ~ net * date + net * gender + date * gender))
+summary(rlmmod <- rlm(y ~ net + date * gender))
+tvalues <- summary(rlmmod)$coefficients[, 3]
+df <- summary(rlmmod)$df[2]
+pvalues <- pt(abs(tvalues), df, lower.tail=FALSE) * 2
 ```
 
 
 ```{r lengthResults, echo=FALSE, cache=TRUE}
-tableData <- cbind(summary(lmmod)$coeff)
+tableData <- cbind(summary(rlmmod)$coeff, pvalues)
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
-                         "Juvenile", "Male", "Unknown Gender")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+# rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+#                          "Unknown Gender", "August", "September", 
+#                          "Net Size * Females", "Net Size * Juveniles", 
+#                          "Net Size * Unknowns", "Net Size * August",
+#                          "Net Size * September",
+#                          "Females * August", "Juveniles * August", 
+#                          "Unknown Gender * August",
+#                          "Females * September", "Juveniles * September", 
+#                          "Unknown Gender * September")
 kable(tableData, digits = 4, format="pandoc")
 
 # plot(lmmod)
 # summary(rlmmod)
 # plot(rlmmod)
-# kruskal.test(y ~ net)
+# kruskal.test(y ~ net + date + gender)
 ```
+
+
+
+```{r effect size, echo=FALSE, eval=FALSE}
+SD <- sqrt(((sum(net == 1.0) - 1) * sd(y[net == 1.0])^2 + 
+              (sum(net == 0.5) - 1) * sd(y[net == 0.5])^2) / 
+             (sum(net == 1.0) + sum(net == 0.5)))
+
+d <- (mean(y[net == 1.0]) - mean(y[net == 0.5])) / SD
+```
+We see that there is a significant effect of net size on mean length caught (p = `r I(pvalues[2])`) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(y))`). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.
+
