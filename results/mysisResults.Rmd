@@ -24,13 +24,21 @@ date <- rep(as.factor(data_one_way$month), 2)
 station <- rep(data_one_way$Station, 2)
 net <- as.factor(c(rep("full", 40), rep("half", 40)))
 data <- data.frame(count=count, date=date, net=net)
+levels(data$date) <- c("July", "August", "Septempber")
+levels(data$net) <- c("Small Net", "Large Net")
 X <- model.matrix(~ net * date)
-ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ .)
 summary(nbmod <- glm.nb(y ~ . -1, data = data.frame(y=count, X)))
 # summary(qpmod <- glmmPQL(count ~ net * date, random=~1|station, family=neg.bin(2.6)))
 # summary(glmmPQL(count ~ net * date, random=~1|station, family=neg.bin(0.1))) 
 # summary(glmmPQL(count ~ net * date, random=~1|station, family=neg.bin(10)))
 coefs <- c(nbmod$coefficients, nbmod$theta)
+```
+
+```{r plotCount, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ .) + 
+  ggtitle("Histogram of normalized counts by net size")
+ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ date) + 
+  ggtitle("Histogram of normalized counts by net size and date")
 ```
 
 To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
@@ -95,14 +103,23 @@ date <- as.factor(date)
 net <- as.factor(size)
 count[rep(net, times=4) == 0.5] <- count[rep(net, times=4) == 0.5] * 4
 data <- data.frame(count=count, date=rep(date, times=4), net=rep(net, times=4), gender=gender)
+levels(data$date) <- c("July", "August", "Septempber")
+levels(data$net) <- c("Small Net", "Large Net")
+levels(data$gender) <- c("Female", "Juvenile", "Male", "Unknown")
 # X <- model.matrix(~ net * date + net * gender + gender * date, data=data)
 X <- model.matrix(~ net * gender + net * date + gender * date, data=data)
-ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ gender)
-ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ date)
-ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(gender ~ date)
+
 nbmod <- glm.nb(y ~ . -1, data = data.frame(y=count, X))
 ```
 
+```{r plot SexCount, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Histogram of normalized counts by sex and net size")
+# ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(net ~ date) + 
+#   ggtitle("Histogram of normalized counts by net size")
+ggplot(data=data, aes(count)) + geom_histogram() + facet_grid(gender ~ date) + 
+  ggtitle("Histogram of normalized counts by sex and date")
+```
 
 To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling, the interaction between net size and sampling date, and the interaction between sampling date and gender. The results shown below show that there is no evidence of an interaction between net size and sampling date and no evidence of an interaction between net size and gender. 
 ```{r sexResults, echo=FALSE, cache=TRUE}
@@ -156,11 +173,17 @@ N <- length(prop)
 date <- rep(as.factor(data_one_way$month), 2)
 net <- as.factor(c(rep("full", 40), rep("half", 40)))
 data <- data.frame(prop=prop, date=date, net=net)
+levels(data$date) <- c("July", "August", "Septempber")
+levels(data$net) <- c("Small Net", "Large Net")
 X <- model.matrix(~ net * date)
-ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .)
 library(betareg)
 brmod <- betareg(prop ~ . -1, data = data.frame(prop, X))
 summary(brmod)
+```
+
+```{r plotJuviCount, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .) + 
+  ggtitle("Histogram of proportion of juveniles by net size")
 ```
 
 To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=`r I(round(summary(brmod)$coef$mean[2, 4], 4))`).
@@ -205,9 +228,6 @@ X <- model.matrix(~ net + date + gender, data=data)
 levels(data$date) <- c("July", "August", "Septempber")
 levels(data$net) <- c("Small Net", "Large Net")
 levels(data$gender) <- c("Female", "Juvenile", "Male", "Unknown")
-ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ date) 
-ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ gender)
-ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(date ~ gender)
 idx <- attr(uniquecombs(X), "index")
 summary(lmmod <- lm(y ~ net + date * gender))
 library(lme4)
@@ -220,6 +240,14 @@ df <- summary(rlmmod)$df[2]
 pvalues <- pt(abs(tvalues), df, lower.tail=FALSE) * 2
 ```
 
+```{r plotLength, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ date) + 
+  ggtitle("Histogram of lengths by net size")
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Histogram of lengths by sex and net size")
+ggplot(data=data, aes(y)) + geom_histogram() + facet_grid(date ~ gender) + 
+  ggtitle("Histogram of lengths by sex and date")
+```
 
 ```{r lengthResults, echo=FALSE, cache=TRUE}
 tableData <- cbind(summary(rlmmod)$coeff, pvalues)
