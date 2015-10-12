@@ -1,0 +1,12 @@
+base
+knitr
+ggplot2
+Rcpp
+htmlTable
+Gmisc
+MASS
+stringr
+nlme
+mgcv
+Matrix
+lme4
