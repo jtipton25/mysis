@@ -55,17 +55,64 @@ tableData <- cbind(summary(nbmod)$coeff[1:6, ])
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
 rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
                          "Net Size * August", "Net Size * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
-                        Estimate   Std. Error   z value   Pr(>|z|)
----------------------  ---------  -----------  --------  ---------
-Intercept                 5.3132        0.139   38.1112      0.000
-Net Size                 -0.0111        0.197   -0.0565      0.955
-August                   -0.3420        0.242   -1.4138      0.157
-September                -0.0812        0.242   -0.3360      0.737
-Net Size * August         0.2459        0.342    0.7193      0.472
-Net Size * September     -0.2734        0.342   -0.7997      0.424
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Estimate </th>
+   <th style="text-align:right;"> Std. Error </th>
+   <th style="text-align:right;"> z value </th>
+   <th style="text-align:right;"> Pr(&gt;|z|) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Intercept </td>
+   <td style="text-align:right;"> 5.3132 </td>
+   <td style="text-align:right;"> 0.139 </td>
+   <td style="text-align:right;"> 38.1112 </td>
+   <td style="text-align:right;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size </td>
+   <td style="text-align:right;"> -0.0111 </td>
+   <td style="text-align:right;"> 0.197 </td>
+   <td style="text-align:right;"> -0.0565 </td>
+   <td style="text-align:right;"> 0.955 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> August </td>
+   <td style="text-align:right;"> -0.3420 </td>
+   <td style="text-align:right;"> 0.242 </td>
+   <td style="text-align:right;"> -1.4138 </td>
+   <td style="text-align:right;"> 0.157 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> September </td>
+   <td style="text-align:right;"> -0.0812 </td>
+   <td style="text-align:right;"> 0.242 </td>
+   <td style="text-align:right;"> -0.3360 </td>
+   <td style="text-align:right;"> 0.737 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * August </td>
+   <td style="text-align:right;"> 0.2459 </td>
+   <td style="text-align:right;"> 0.342 </td>
+   <td style="text-align:right;"> 0.7193 </td>
+   <td style="text-align:right;"> 0.472 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * September </td>
+   <td style="text-align:right;"> -0.2734 </td>
+   <td style="text-align:right;"> 0.342 </td>
+   <td style="text-align:right;"> -0.7997 </td>
+   <td style="text-align:right;"> 0.424 </td>
+  </tr>
+</tbody>
+</table>
 
 ## Model for counts by sex
 
@@ -111,29 +158,148 @@ rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles",
                          "Unknown Gender * August",
                          "Females * September", "Juveniles * September", 
                          "Unknown Gender * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
-                              Estimate   Std. Error   z value   Pr(>|z|)
----------------------------  ---------  -----------  --------  ---------
-Intercept                       3.3587        0.158    21.285     0.0000
-Net Size                        0.0678        0.196     0.347     0.7287
-Females                        -1.2668        0.220    -5.755     0.0000
-Juveniles                       1.5758        0.212     7.436     0.0000
-Unknown Gender                 -0.5729        0.216    -2.657     0.0079
-August                          0.1567        0.239     0.655     0.5127
-September                       0.1468        0.239     0.615     0.5387
-Net Size * Females              0.3123        0.252     1.240     0.2151
-Net Size * Juveniles            0.0037        0.245     0.015     0.9880
-Net Size * Unknowns             0.0879        0.247     0.355     0.7224
-Net Size * August              -0.3157        0.215    -1.467     0.1425
-Net Size * September            0.2531        0.214     1.180     0.2380
-Females * August                0.3251        0.309     1.052     0.2929
-Juveniles * August             -0.7032        0.300    -2.342     0.0192
-Unknown Gender * August         1.0094        0.303     3.332     0.0009
-Females * September             0.5445        0.306     1.779     0.0753
-Juveniles * September          -1.5523        0.300    -5.166     0.0000
-Unknown Gender * September      0.9672        0.302     3.204     0.0014
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Estimate </th>
+   <th style="text-align:right;"> Std. Error </th>
+   <th style="text-align:right;"> z value </th>
+   <th style="text-align:right;"> Pr(&gt;|z|) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Intercept </td>
+   <td style="text-align:right;"> 3.3587 </td>
+   <td style="text-align:right;"> 0.158 </td>
+   <td style="text-align:right;"> 21.285 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size </td>
+   <td style="text-align:right;"> 0.0678 </td>
+   <td style="text-align:right;"> 0.196 </td>
+   <td style="text-align:right;"> 0.347 </td>
+   <td style="text-align:right;"> 0.7287 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females </td>
+   <td style="text-align:right;"> -1.2668 </td>
+   <td style="text-align:right;"> 0.220 </td>
+   <td style="text-align:right;"> -5.755 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles </td>
+   <td style="text-align:right;"> 1.5758 </td>
+   <td style="text-align:right;"> 0.212 </td>
+   <td style="text-align:right;"> 7.436 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender </td>
+   <td style="text-align:right;"> -0.5729 </td>
+   <td style="text-align:right;"> 0.216 </td>
+   <td style="text-align:right;"> -2.657 </td>
+   <td style="text-align:right;"> 0.0079 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> August </td>
+   <td style="text-align:right;"> 0.1567 </td>
+   <td style="text-align:right;"> 0.239 </td>
+   <td style="text-align:right;"> 0.655 </td>
+   <td style="text-align:right;"> 0.5127 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> September </td>
+   <td style="text-align:right;"> 0.1468 </td>
+   <td style="text-align:right;"> 0.239 </td>
+   <td style="text-align:right;"> 0.615 </td>
+   <td style="text-align:right;"> 0.5387 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * Females </td>
+   <td style="text-align:right;"> 0.3123 </td>
+   <td style="text-align:right;"> 0.252 </td>
+   <td style="text-align:right;"> 1.240 </td>
+   <td style="text-align:right;"> 0.2151 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * Juveniles </td>
+   <td style="text-align:right;"> 0.0037 </td>
+   <td style="text-align:right;"> 0.245 </td>
+   <td style="text-align:right;"> 0.015 </td>
+   <td style="text-align:right;"> 0.9880 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * Unknowns </td>
+   <td style="text-align:right;"> 0.0879 </td>
+   <td style="text-align:right;"> 0.247 </td>
+   <td style="text-align:right;"> 0.355 </td>
+   <td style="text-align:right;"> 0.7224 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * August </td>
+   <td style="text-align:right;"> -0.3157 </td>
+   <td style="text-align:right;"> 0.215 </td>
+   <td style="text-align:right;"> -1.467 </td>
+   <td style="text-align:right;"> 0.1425 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * September </td>
+   <td style="text-align:right;"> 0.2531 </td>
+   <td style="text-align:right;"> 0.214 </td>
+   <td style="text-align:right;"> 1.180 </td>
+   <td style="text-align:right;"> 0.2380 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females * August </td>
+   <td style="text-align:right;"> 0.3251 </td>
+   <td style="text-align:right;"> 0.309 </td>
+   <td style="text-align:right;"> 1.052 </td>
+   <td style="text-align:right;"> 0.2929 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles * August </td>
+   <td style="text-align:right;"> -0.7032 </td>
+   <td style="text-align:right;"> 0.300 </td>
+   <td style="text-align:right;"> -2.342 </td>
+   <td style="text-align:right;"> 0.0192 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender * August </td>
+   <td style="text-align:right;"> 1.0094 </td>
+   <td style="text-align:right;"> 0.303 </td>
+   <td style="text-align:right;"> 3.332 </td>
+   <td style="text-align:right;"> 0.0009 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females * September </td>
+   <td style="text-align:right;"> 0.5445 </td>
+   <td style="text-align:right;"> 0.306 </td>
+   <td style="text-align:right;"> 1.779 </td>
+   <td style="text-align:right;"> 0.0753 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles * September </td>
+   <td style="text-align:right;"> -1.5523 </td>
+   <td style="text-align:right;"> 0.300 </td>
+   <td style="text-align:right;"> -5.166 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender * September </td>
+   <td style="text-align:right;"> 0.9672 </td>
+   <td style="text-align:right;"> 0.302 </td>
+   <td style="text-align:right;"> 3.204 </td>
+   <td style="text-align:right;"> 0.0014 </td>
+  </tr>
+</tbody>
+</table>
 
 Thus, we refit the model without the interaction between net size and sampling date. To do this we start by loading the new covariate matrix $\mathbf{X}$.
 
@@ -152,27 +318,134 @@ rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles",
                          "Unknown Gender * August",
                          "Females * September", "Juveniles * September", 
                          "Unknown Gender * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
-                              Estimate   Std. Error   z value   Pr(>|z|)
----------------------------  ---------  -----------  --------  ---------
-Intercept                       3.4341        0.152   22.5222     0.0000
-Net Size                       -0.0834        0.176   -0.4739     0.6356
-Females                        -1.2681        0.222   -5.7202     0.0000
-Juveniles                       1.5772        0.214    7.3834     0.0000
-Unknown Gender                 -0.5726        0.217   -2.6358     0.0084
-August                          0.0092        0.216    0.0425     0.9661
-September                       0.2911        0.215    1.3543     0.1756
-Net Size * Females              0.3160        0.254    1.2454     0.2130
-Net Size * Juveniles            0.0019        0.247    0.0079     0.9937
-Net Size * Unknowns             0.0877        0.249    0.3516     0.7252
-Females * August                0.3390        0.311    1.0891     0.2761
-Juveniles * August             -0.7198        0.303   -2.3784     0.0174
-Unknown Gender * August         1.0143        0.305    3.3231     0.0009
-Females * September             0.5426        0.308    1.7596     0.0785
-Juveniles * September          -1.5839        0.303   -5.2294     0.0000
-Unknown Gender * September      0.9655        0.304    3.1741     0.0015
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Estimate </th>
+   <th style="text-align:right;"> Std. Error </th>
+   <th style="text-align:right;"> z value </th>
+   <th style="text-align:right;"> Pr(&gt;|z|) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Intercept </td>
+   <td style="text-align:right;"> 3.4341 </td>
+   <td style="text-align:right;"> 0.152 </td>
+   <td style="text-align:right;"> 22.5222 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size </td>
+   <td style="text-align:right;"> -0.0834 </td>
+   <td style="text-align:right;"> 0.176 </td>
+   <td style="text-align:right;"> -0.4739 </td>
+   <td style="text-align:right;"> 0.6356 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females </td>
+   <td style="text-align:right;"> -1.2681 </td>
+   <td style="text-align:right;"> 0.222 </td>
+   <td style="text-align:right;"> -5.7202 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles </td>
+   <td style="text-align:right;"> 1.5772 </td>
+   <td style="text-align:right;"> 0.214 </td>
+   <td style="text-align:right;"> 7.3834 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender </td>
+   <td style="text-align:right;"> -0.5726 </td>
+   <td style="text-align:right;"> 0.217 </td>
+   <td style="text-align:right;"> -2.6358 </td>
+   <td style="text-align:right;"> 0.0084 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> August </td>
+   <td style="text-align:right;"> 0.0092 </td>
+   <td style="text-align:right;"> 0.216 </td>
+   <td style="text-align:right;"> 0.0425 </td>
+   <td style="text-align:right;"> 0.9661 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> September </td>
+   <td style="text-align:right;"> 0.2911 </td>
+   <td style="text-align:right;"> 0.215 </td>
+   <td style="text-align:right;"> 1.3543 </td>
+   <td style="text-align:right;"> 0.1756 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * Females </td>
+   <td style="text-align:right;"> 0.3160 </td>
+   <td style="text-align:right;"> 0.254 </td>
+   <td style="text-align:right;"> 1.2454 </td>
+   <td style="text-align:right;"> 0.2130 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * Juveniles </td>
+   <td style="text-align:right;"> 0.0019 </td>
+   <td style="text-align:right;"> 0.247 </td>
+   <td style="text-align:right;"> 0.0079 </td>
+   <td style="text-align:right;"> 0.9937 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * Unknowns </td>
+   <td style="text-align:right;"> 0.0877 </td>
+   <td style="text-align:right;"> 0.249 </td>
+   <td style="text-align:right;"> 0.3516 </td>
+   <td style="text-align:right;"> 0.7252 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females * August </td>
+   <td style="text-align:right;"> 0.3390 </td>
+   <td style="text-align:right;"> 0.311 </td>
+   <td style="text-align:right;"> 1.0891 </td>
+   <td style="text-align:right;"> 0.2761 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles * August </td>
+   <td style="text-align:right;"> -0.7198 </td>
+   <td style="text-align:right;"> 0.303 </td>
+   <td style="text-align:right;"> -2.3784 </td>
+   <td style="text-align:right;"> 0.0174 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender * August </td>
+   <td style="text-align:right;"> 1.0143 </td>
+   <td style="text-align:right;"> 0.305 </td>
+   <td style="text-align:right;"> 3.3231 </td>
+   <td style="text-align:right;"> 0.0009 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females * September </td>
+   <td style="text-align:right;"> 0.5426 </td>
+   <td style="text-align:right;"> 0.308 </td>
+   <td style="text-align:right;"> 1.7596 </td>
+   <td style="text-align:right;"> 0.0785 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles * September </td>
+   <td style="text-align:right;"> -1.5839 </td>
+   <td style="text-align:right;"> 0.303 </td>
+   <td style="text-align:right;"> -5.2294 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender * September </td>
+   <td style="text-align:right;"> 0.9655 </td>
+   <td style="text-align:right;"> 0.304 </td>
+   <td style="text-align:right;"> 3.1741 </td>
+   <td style="text-align:right;"> 0.0015 </td>
+  </tr>
+</tbody>
+</table>
 
 ## Model for proportion of juveniles
 
@@ -193,17 +466,64 @@ tableData <- cbind(summary(brmod)$coeff$mean)
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
 rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
                          "Net Size * August", "Net Size * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
-                        Estimate   Std. Error   z value   Pr(>|z|)
----------------------  ---------  -----------  --------  ---------
-Intercept                 0.6326        0.155     4.093     0.0000
-Net Size                  0.0602        0.219     0.276     0.7829
-August                   -0.9367        0.263    -3.566     0.0004
-September                -2.0965        0.296    -7.092     0.0000
-Net Size * August        -0.2113        0.372    -0.568     0.5703
-Net Size * September      0.5523        0.399     1.383     0.1666
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Estimate </th>
+   <th style="text-align:right;"> Std. Error </th>
+   <th style="text-align:right;"> z value </th>
+   <th style="text-align:right;"> Pr(&gt;|z|) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Intercept </td>
+   <td style="text-align:right;"> 0.6326 </td>
+   <td style="text-align:right;"> 0.155 </td>
+   <td style="text-align:right;"> 4.093 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size </td>
+   <td style="text-align:right;"> 0.0602 </td>
+   <td style="text-align:right;"> 0.219 </td>
+   <td style="text-align:right;"> 0.276 </td>
+   <td style="text-align:right;"> 0.7829 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> August </td>
+   <td style="text-align:right;"> -0.9367 </td>
+   <td style="text-align:right;"> 0.263 </td>
+   <td style="text-align:right;"> -3.566 </td>
+   <td style="text-align:right;"> 0.0004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> September </td>
+   <td style="text-align:right;"> -2.0965 </td>
+   <td style="text-align:right;"> 0.296 </td>
+   <td style="text-align:right;"> -7.092 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * August </td>
+   <td style="text-align:right;"> -0.2113 </td>
+   <td style="text-align:right;"> 0.372 </td>
+   <td style="text-align:right;"> -0.568 </td>
+   <td style="text-align:right;"> 0.5703 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size * September </td>
+   <td style="text-align:right;"> 0.5523 </td>
+   <td style="text-align:right;"> 0.399 </td>
+   <td style="text-align:right;"> 1.383 </td>
+   <td style="text-align:right;"> 0.1666 </td>
+  </tr>
+</tbody>
+</table>
 
 ## Length model
 
@@ -232,24 +552,113 @@ rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles",
                          "Females * September", "Juveniles * September", 
                          "Unknown Gender * September")
 
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
-                              Estimate   Std. Error   z value   Pr(>|z|)
----------------------------  ---------  -----------  --------  ---------
-Intercept                       16.683       0.0924    180.46     0.0000
-Net Size                         0.103       0.0378      2.73     0.0063
-Females                          0.500       0.1447      3.46     0.0006
-Juveniles                       -0.700       0.1167     -6.00     0.0000
-Unknown Gender                 -10.114       0.0900   -112.37     0.0000
-August                          -1.950       0.1020    -19.11     0.0000
-September                       -4.753       0.1107    -42.92     0.0000
-Females * August                 1.103       0.1547      7.13     0.0000
-Juveniles * August               3.242       0.1364     23.77     0.0000
-Unknown Gender * August         -0.504       0.1731     -2.91     0.0036
-Females * September              1.117       0.1427      7.83     0.0000
-Juveniles * September           -0.397       0.1716     -2.31     0.0207
-Unknown Gender * September       0.537       0.1442      3.72     0.0002
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Estimate </th>
+   <th style="text-align:right;"> Std. Error </th>
+   <th style="text-align:right;"> z value </th>
+   <th style="text-align:right;"> Pr(&gt;|z|) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Intercept </td>
+   <td style="text-align:right;"> 16.683 </td>
+   <td style="text-align:right;"> 0.0924 </td>
+   <td style="text-align:right;"> 180.46 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Net Size </td>
+   <td style="text-align:right;"> 0.103 </td>
+   <td style="text-align:right;"> 0.0378 </td>
+   <td style="text-align:right;"> 2.73 </td>
+   <td style="text-align:right;"> 0.0063 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females </td>
+   <td style="text-align:right;"> 0.500 </td>
+   <td style="text-align:right;"> 0.1447 </td>
+   <td style="text-align:right;"> 3.46 </td>
+   <td style="text-align:right;"> 0.0006 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles </td>
+   <td style="text-align:right;"> -0.700 </td>
+   <td style="text-align:right;"> 0.1167 </td>
+   <td style="text-align:right;"> -6.00 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender </td>
+   <td style="text-align:right;"> -10.114 </td>
+   <td style="text-align:right;"> 0.0900 </td>
+   <td style="text-align:right;"> -112.37 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> August </td>
+   <td style="text-align:right;"> -1.950 </td>
+   <td style="text-align:right;"> 0.1020 </td>
+   <td style="text-align:right;"> -19.11 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> September </td>
+   <td style="text-align:right;"> -4.753 </td>
+   <td style="text-align:right;"> 0.1107 </td>
+   <td style="text-align:right;"> -42.92 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females * August </td>
+   <td style="text-align:right;"> 1.103 </td>
+   <td style="text-align:right;"> 0.1547 </td>
+   <td style="text-align:right;"> 7.13 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles * August </td>
+   <td style="text-align:right;"> 3.242 </td>
+   <td style="text-align:right;"> 0.1364 </td>
+   <td style="text-align:right;"> 23.77 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender * August </td>
+   <td style="text-align:right;"> -0.504 </td>
+   <td style="text-align:right;"> 0.1731 </td>
+   <td style="text-align:right;"> -2.91 </td>
+   <td style="text-align:right;"> 0.0036 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Females * September </td>
+   <td style="text-align:right;"> 1.117 </td>
+   <td style="text-align:right;"> 0.1427 </td>
+   <td style="text-align:right;"> 7.83 </td>
+   <td style="text-align:right;"> 0.0000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Juveniles * September </td>
+   <td style="text-align:right;"> -0.397 </td>
+   <td style="text-align:right;"> 0.1716 </td>
+   <td style="text-align:right;"> -2.31 </td>
+   <td style="text-align:right;"> 0.0207 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Unknown Gender * September </td>
+   <td style="text-align:right;"> 0.537 </td>
+   <td style="text-align:right;"> 0.1442 </td>
+   <td style="text-align:right;"> 3.72 </td>
+   <td style="text-align:right;"> 0.0002 </td>
+  </tr>
+</tbody>
+</table>
 
 
 

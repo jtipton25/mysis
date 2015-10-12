@@ -61,7 +61,7 @@ tableData <- cbind(summary(nbmod)$coeff[1:6, ])
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
 rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
                          "Net Size * August", "Net Size * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
 ## Model for counts by sex
@@ -103,7 +103,7 @@ rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles",
                          "Unknown Gender * August",
                          "Females * September", "Juveniles * September", 
                          "Unknown Gender * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
 Thus, we refit the model without the interaction between net size and sampling date. To do this we start by loading the new covariate matrix $\mathbf{X}$.
@@ -125,7 +125,7 @@ rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles",
                          "Unknown Gender * August",
                          "Females * September", "Juveniles * September", 
                          "Unknown Gender * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
 ## Model for proportion of juveniles
@@ -162,7 +162,7 @@ tableData <- cbind(summary(brmod)$coeff$mean)
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
 rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
                          "Net Size * August", "Net Size * September")
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
 ## Length model
@@ -222,7 +222,7 @@ rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles",
                          "Females * September", "Juveniles * September", 
                          "Unknown Gender * September")
 
-kable(tableData, digits = 4, format="pandoc")
+kable(tableData, digits = 4, format="html")
 ```
 
 
