@@ -1,0 +1,163 @@
+---
+title: "Beta Regression"
+author: "John Tipton"
+date: "August 14, 2015"
+output: html_document
+---
+# Write a beta GLM in STAN
+
+```{r}
+library(rstan)
+sm <- stan_model("~/mysis/stanModels/betaRegression-glm.stan")
+```
+
+## Load the Data
+
+```{r}
+library(ggplot2)
+set.seed(123)
+data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40, header = TRUE, stringsAsFactors=FALSE)
+
+prop <- c(as.numeric(data_one_way$full.2),    ## proportion of females full net
+             as.numeric(data_one_way$half.2)) ## proportion of females half net
+N <- length(prop)
+## Set improper values to NA
+
+date <- rep(as.factor(data_one_way$month), 2)
+net <- as.factor(c(rep("full", 40), rep("half", 40)))
+data <- data.frame(prop=prop, date=date, net=net)
+X <- model.matrix(~ net * date)
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .)
+```
+
+## Fit the Model
+
+```{r}
+m <- sampling(sm, data = list(N=N, y = prop, X = X, p=dim(X)[2]),
+  pars = c("beta", "phi"),
+  iter = 5000, chains = 4)
+```
+
+## Model output
+```{r}
+m
+```
+
+## Plot traceplots
+```{r}
+rstan::traceplot(m, inc_warmup = FALSE)
+```
+
+## Plot fitted vs. simulated values
+
+```{r}
+e <- rstan::extract(m, pars = c("beta", "phi"))
+library(betareg)
+brmod <- betareg(prop ~ . -1, data = data.frame(prop, X))
+summary(brmod)
+coefs <- c(brmod$coefficients$mean, brmod$coefficients$precision)
+par(mfrow = c(3, 3))
+for(i in 1:2) {
+  if(i == 1) {
+    for(j in 1:6) {
+    # for(j in 1:5) {
+      plot(density(e[[i]][,j]), main = paste("beta", j, sep=""))
+      # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+      abline(v = coefs[i + j - 1], lwd = 3, col = "red")
+    }
+  } else if(i == 2) {
+    plot(density(e[[i]]), main = "phi")
+    # abline(v = true_pars[i + j - 1], lwd = 2, col = "grey", lty = 2)
+    abline(v = coefs[i + j - 1], lwd = 3, col = "red")
+  }
+}
+# legend("topright", legend = c("posterior", "true", "MASS::glm.nb"),
+#   col = c("black", "grey", "red"), lty = c(1, 2, 1), lwd = c(1, 1.3, 3),
+#   bty = "n")
+```
+
+
+```{r}
+library(ggmcmc)
+library(coda)
+s <-  mcmc.list(lapply(1:ncol(m), function(x) mcmc(as.array(m)[,x,])))
+S <- ggs(s)
+
+
+ggs_caterpillar(S, family = "beta")  
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# model for later comparison
+
+
+
+# simulate yRep as in BDA appendix C; could also do in generated quantities block of stan code
+for (s in 1:nSim){
+  betaS = betareg_sim$beta[s,]
+  muS = plogis(X%*%betaS)
+  A = muS*betareg_sim$phi[s]
+  B = (1-muS)*betareg_sim$phi[s]
+  yRep[s,] = rbeta(dat$N, A, B)
+}
+str(yRep)
+
+
+# example, as in BDA p.144, code from appendix C; probably not very useful
+par(mfrow=c(5,4), mar=c(4,4,2,2))
+hist(y, xlab='', main='y', 'FD')
+for (s in 1:19) hist(yRep[s,], xlab='', main=paste('yRep',s), 'FD')
+layout(1)
+
+# the following plots get at the same thing
+library(ggplot2); library(reshape2)
+gdat = data.frame(X,y)
+gdatyRep = melt(yRep)
+
+# individual observation distibutions; note the theme is my own (available on github), but otherwise you'll have to define yours.
+ggplot(aes(x=y), xlim=c(.2,1), data=gdat) + 
+  stat_density(geom='line', lwd=2, alpha=.2) + 
+  geom_line(aes(x=value,  group=as.factor(Var2), col=as.factor(Var2)), stat='density', data=gdatyRep, show_guide=F, alpha=.15) +
+  ggtheme
+
+# whole response distributions, comparison with betareg fits
+ggplot(aes(x=y), xlim=c(.2,1), data=gdat) + 
+  geom_line(aes(x=value,  group=as.factor(Var1), col=as.factor(Var1)), stat='density', data=gdatyRep, show_guide=F, alpha=.05) +
+  stat_density(geom='line', lwd=2, alpha=.2) + 
+  stat_density(aes(x=brmod$fitted), geom='line', col='darkred', lwd=2, alpha=.2) +
+  stat_density(aes(x=value), geom='line', col='#FF5500', lwd=2, alpha=.2, data=gdatyRep) +
+  ggtheme
+
+# Examine quantiles
+sapply(list(yRep=gdatyRep$value, brFitted=brmod$fitted.values, y=y), quantile, p=c(0,.1,.25,.5,.625,.75,.8,.9,.95,1))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

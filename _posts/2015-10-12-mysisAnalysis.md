@@ -1,7 +1,7 @@
----
+
 title: "Mysis analysis"
 author: "John Tipton"
-date: "September 9, 2015"
+date: "October 12, 2015"
 output: html_document
 ---
 This document shows the analyses performed in Johnson et. al. We start by loading packages and define helper functions
@@ -179,14 +179,93 @@ Unknown Gender * September      0.9655        0.304    3.1741     0.0015
 
 
 
+```r
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .) + 
+  ggtitle("Histogram of proportion of juveniles by net size")
+```
+
+<img src="../images/mysisAnalysis-plotJuviCount-1.png" title="plot of chunk plotJuviCount" alt="plot of chunk plotJuviCount" width="300px" style="display: block; margin: auto;" />
+
+To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=0.783).
+
+
+```r
+tableData <- cbind(summary(brmod)$coeff$mean)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
+                         "Net Size * August", "Net Size * September")
+kable(tableData, digits = 4, format="pandoc")
+```
+
+                        Estimate   Std. Error   z value   Pr(>|z|)
+---------------------  ---------  -----------  --------  ---------
+Intercept                 0.6326        0.155     4.093     0.0000
+Net Size                  0.0602        0.219     0.276     0.7829
+August                   -0.9367        0.263    -3.566     0.0004
+September                -2.0965        0.296    -7.092     0.0000
+Net Size * August        -0.2113        0.372    -0.568     0.5703
+Net Size * September      0.5523        0.399     1.383     0.1666
+
+## Length model
 
 
 
 
+```r
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ date) +
+  ggtitle("Lengths by net size")
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Lengths by sex and net size")
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(date ~ gender) + 
+  ggtitle("Lengths by sex and date")
+```
+
+<img src="../images/mysisAnalysis-plotLength-1.png" title="plot of chunk plotLength" alt="plot of chunk plotLength" width="300px" style="display: block; margin: auto;" /><img src="../images/mysisAnalysis-plotLength-2.png" title="plot of chunk plotLength" alt="plot of chunk plotLength" width="300px" style="display: block; margin: auto;" /><img src="../images/mysisAnalysis-plotLength-3.png" title="plot of chunk plotLength" alt="plot of chunk plotLength" width="300px" style="display: block; margin: auto;" />
+
+
+```r
+tableData <- cbind(summary(rlmmod)$coeff, pvalues)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+
+kable(tableData, digits = 4, format="pandoc")
+```
+
+                              Estimate   Std. Error   z value   Pr(>|z|)
+---------------------------  ---------  -----------  --------  ---------
+Intercept                       16.683       0.0924    180.46     0.0000
+Net Size                         0.103       0.0378      2.73     0.0063
+Females                          0.500       0.1447      3.46     0.0006
+Juveniles                       -0.700       0.1167     -6.00     0.0000
+Unknown Gender                 -10.114       0.0900   -112.37     0.0000
+August                          -1.950       0.1020    -19.11     0.0000
+September                       -4.753       0.1107    -42.92     0.0000
+Females * August                 1.103       0.1547      7.13     0.0000
+Juveniles * August               3.242       0.1364     23.77     0.0000
+Unknown Gender * August         -0.504       0.1731     -2.91     0.0036
+Females * September              1.117       0.1427      7.83     0.0000
+Juveniles * September           -0.397       0.1716     -2.31     0.0207
+Unknown Gender * September       0.537       0.1442      3.72     0.0002
 
 
 
 
+```r
+SD <- sqrt(((sum(mysisLengthData$net == "Large Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Large Net"])^2 + 
+              (sum(mysisLengthData$net == "Small Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Small Net"])^2) / 
+             (sum(mysisLengthData$net == "Large Net") + 
+                sum(mysisLengthData$net == "Small Net")))
 
+d <- (mean(mysisLengthData$y[mysisLengthData$net == "Large Net"]) - 
+        mean(mysisLengthData$y[mysisLengthData$net == "Small Net"])) / SD
+```
+We see that there is a significant effect of net size on mean length caught (p = 0.006) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (0.103mm) and the sample size is large (n = 9127). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of 0.103mm on a species with a mean length of 10.351mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.
 
 
