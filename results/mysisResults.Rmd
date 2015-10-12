@@ -134,8 +134,8 @@ set.seed(123)
 data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40,
                          header = TRUE, stringsAsFactors=FALSE)
 
-prop <- c(as.numeric(data_one_way$full.2),    ## proportion of females full net
-             as.numeric(data_one_way$half.2)) ## proportion of females half net
+prop <- c(as.numeric(data_one_way$full.2),    ## proportion of juveniles full net
+             as.numeric(data_one_way$half.2)) ## proportion of juveniles half net
 N <- length(prop)
 ## Set improper values to NA
 
