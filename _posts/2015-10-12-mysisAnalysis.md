@@ -2,7 +2,6 @@
 title: "Mysis analysis"
 author: "John Tipton"
 date: "October 12, 2015"
-output: html_document
 ---
 This document shows the analyses performed in Johnson et. al. We start by loading packages and define helper functions
 
