@@ -1,8 +1,7 @@
----
+
 title: "Mysis analysis"
 author: "John Tipton"
-date: "September 9, 2015"
-output: html_document
+date: "October 12, 2015"
 ---
 This document shows the analyses performed in Johnson et. al. We start by loading packages and define helper functions
 
@@ -240,3 +239,5 @@ d <- (mean(mysisLengthData$y[mysisLengthData$net == "Large Net"]) -
         mean(mysisLengthData$y[mysisLengthData$net == "Small Net"])) / SD
 ```
 We see that there is a significant effect of net size on mean length caught (p = `r I(pvalues[2])`) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.
+
+
