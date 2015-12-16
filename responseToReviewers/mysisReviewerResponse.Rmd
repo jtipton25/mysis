@@ -1,0 +1,352 @@
+---
+output: word_document
+---
+
+title: "Response to reviewer's statistical comments on the paper: GLR-D-15-00174 - Effect of net size on estimates of abundance, size, age and sex ratio of Mysis diluviana Journal of Great Lakes Research"
+author: "John Tipton"
+date: "October 12, 2015"
+---
+
+```{r loadLibraries, echo=FALSE, include=FALSE, message=FALSE}
+## We start by loading packages and define helper functions
+options(digits=3)
+set.seed(123)
+library(knitr)
+knitr::opts_chunk$set(fig.path='../images/mysisAnalysis-')
+library(ggplot2)
+library(Gmisc)
+library(MASS)
+library(stringr)
+library(mgcv)
+library(lme4)
+```
+
+
+
+
+After loading the data, we can look at histograms of data to get a better understanding of what variables effect mysis shrimp count. First we examine the total counts broken down by net size and sampling month
+
+```{r plotCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", eval=FALSE}
+ggplot(data=mysisCountData, aes(count)) + geom_histogram() + facet_grid(net ~ date) + 
+  ggtitle("Histogram of normalized counts by net size and date")
+```
+
+From these histograms, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. We test this formally by fitting a model to compare if the count of shrimp caught by the large net is the same as the count of shrimp caught by the large net, after normalizing for the area of the two nets and controlling for covariates. Because counts cannot be less that zero and often are right skewed, the assumption of Normality in the data is questionable. Hence, we don't want to use Gaussian methods like linear regression and ANOVA. But, for completeness, let's look a a paired t-test and see what the results look like with the knowledge that this analysis is less than satisfactory.
+
+```{r pariedTTest}
+y1 <- mysisCountData$count[mysisCountData$net == "Small Net"]
+y2 <- mysisCountData$count[mysisCountData$net == "Large Net"]
+pairttest <- t.test(y1, y2, paired=TRUE)
+```
+
+From the paired t-test, we find that there is no significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value` ) in expected counts (after accounting for the different surface areas between the nets)
+
+Luckily, the class of models known a generalized linear models (or glms) offers a solution. These models allow for regression models that control for the effects of covariates like linear regression but do not assume the normal distribution. For count data, there are two natural distributions to use: the Poisson distribution and the negative binomial distribution. The Poisson distribution has the strong assumption that the mean equals the variance, which is often not met in practical datasets. In our data, the count means are $(`r I(mns)`)$ and the count variances are $(`r I(vars)`)$, for the small and large nets, respectively. Therefore we use a negative binomial model
+$$
+\label{neg:bin}
+y_i \sim \mbox{NegBin}(\mu_i, \phi),
+$$
+where $\mu$ is the mean of the negative binomial distribution and $\phi$ is an overdispersion parameter that allows for the mean and variance to be different. We model $\mu$ with covariates using a log link function
+$$ 
+\mu_i = log(\mathbf{X}_i \boldsymbol{\beta}),
+$$
+where $\mathbf{X}_i$ is the set of covariates for observation $i$. Then we perform inference on our coefficients $\boldsymbol{\beta}$, where the interpretation of $\beta_j$ is a percent change in count per unit change in $X_{ij}$.
+
+```{r totalCountModel, echo=TRUE, eval=TRUE, results="hide"}
+## construct covariates of net size, date and their interaction
+X <- model.matrix(~ net * date - 1, data=mysisCountData)  
+## fit negative binomial model
+summary(nbmod <- glm.nb(y ~ ., data = data.frame(y=mysisCountData$count, X)))
+## get coefficient estimates
+coefs <- c(nbmod$coefficients, nbmod$theta)           
+```
+
+To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+
+
+```{r countModelResults, echo=TRUE, eval=FALSE}
+tableData <- cbind(summary(nbmod)$coeff[1:6, ])
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
+                         "Net Size * August", "Net Size * September")
+kable(tableData, digits = 4, format="html")
+```
+
+Associate Editor:
+This is a useful analysis of mysid sampling methods that has implications to Great Lakes and beyond. The paper has received two careful reviews. Both reviewers were generally positive, but have some suggestions for improvements.  
+
+### Both reviewers wanted to know why you did not use a paired t test when comparing the two net types, which given the paired approach to sampling would appear to be the most appropriate method to analyze the data. If you have reasons not to use that approach, please elaborate in your response letter and add a sentence or two to the methods.  
+
+We begin the analysis by loading the data used for measuring total count. At each sampling event $i$ we recorded the number of mysis shrimp caught and important covariates including date, site, net size, etc. 
+
+```{r totalCount, echo=TRUE, include=TRUE, message=FALSE, cache=TRUE, eval=TRUE}
+load("~/mysis/data/mysisCountData.RData")                                 ## load count data
+``` 
+
+
+
+## Another issue to consider is the catch of a few large and small individuals in the larger nets.  You should be able to test if that is simply due to the larger sample size obtained in the larger net. You suggest that may be the case.
+
+### Finally, the length analysis is using every measured mysids as an independent sampling unit.  I think it would be more appropriate to use a paired t test on the mean lengths for that comparison as well, using each net instead of each mysid as the sampling unit. There is always the possibility that different size groups occur in different areas of the reservoir, and therefore that each mysids measured are not independent from the other mysids measured in a given net haul. Please consider that in your response.
+
+Lars
+
+
+## Reviewers' comments:
+
+## Reviewer #1: Review of GLR-D-15-00174
+
+### 8)      Line 145, 150 I'm not sure you controlled for these factors, rather it seems like they were factors in the analysis?
+
+### 9)      Line 149 I don't think the mean length is the correct variable of interest.  The size distributions could be very different and provide similar mean lengths.  Rather, I think an analysis of the size structure is appropriate, perhaps using some sort of contingency table to evaluate the homogeneity of proportions.  I also think the analysis of population structure (male-female, juvenile) and male:female ratio would be more appropriately done by testing for homegenity of proportions and then looking at standardized deviation to see where the nets differed (if at all).
+
+### 10)     The analysis of abundance (and other factors) was done basically to see if this study was done with one net or the other, would the results over the reservoir differ.  This is an interesting question and an important one to address.  But the net tows were done in paired combinations, so there is more information here.  I would like to see something like a paired t-test (using each individual set of net tows as a sample), or a regression of values from one net plotted against the other from each sample to see if there was any bias based on the paired tows.
+
+### 11)     Line 163 and 166  I think you mean density and not number?
+
+### 12)     Please provide F values, df so the stats can be evaluated
+
+### 13)     Line 177 also caught more of the smallest individuals
+
+
+
+
+## Reviewer #2: This manuscript has one straightforward message that will be useful to researchers interested in the collection of mysids, in that it supports the use of smaller diameter nets, which will be convenient from small vessels often used in lakes these animals have spread into. Overall this manuscript is acceptable for publication with some revisions. The details of the statistical tests need to be expanded upon and some language that downplays some of the size-distribution differences with different net sizes should be discussed in greater detail.
+
+Major points:
+
+### 2) The manuscript is short so you have plenty of space to expand upon your statistical methodology which isn't made clear, and your presentation of only p values is insufficient to assess your analysis.
+
+### 4) Downplaying the differences in size-distribution associated with the net sizes doesn't make the paper more persuasive. There are plenty of reasons where researchers may target the tiny fraction of smallest or largest individuals which are being missed by the smaller nets. Discuss this difference and end with the point you make that if possible, use the larger nets, but for most work, the smaller nets are an acceptable substitute.
+
+Detailed comments:
+L38 Only 3 dates were sampled.
+
+### L40 Size structure was slightly different (more at tails of size-distribution for large nets). Without this fact the last sentence of the abstract may not be clear.
+
+
+### L122 use ind or N rather than lowercase n
+
+### L130 use s or seconds
+
+### L141 Be consistent   N/m2, number/m2
+
+### L142-151. You can be more concise here for some content and have to expand on other. You always have the same effects so you don't have to relist them. State the data isn't normal so a negative binomial transformation was used for regression on abundance, sex ratio…etc. See next note regarding statistical methods. You would be better off explaining the rationale for methods and the format in more detail rather than just the factors. For instance there is no detail given on the negative binomial model which can be constructed and assessed in a range of ways (likelihood format, AIC etc). Be descriptive here. If you used a specific stat software package, this would be the place to note it.
+
+### L145-148 Why wouldn't you use a paired test? You collected each at the same time, so you could control much of the variability in catch (patchiness) by comparing them to each other (you comment L153-155 on this). Your size data shows multiple cohorts so it isn't surprising that you have non-normal data but the distributions are similar so should be easily discriminated using pairwise testing.
+
+### L162-170. You give p values but no specifics as to method. The negative binomial model requires a range of output to assess the fit. The p values by themselves are not necessarily relevant so F (or z) values or r-mean squares should be included as well.
+
+
+### L156. It is unusual for an author to cite unpublished data on their own paper. Ideally, you could easily add an additional graph that shows the series given the few number of tables and figures.
+L161. Are you alluding to a drawback in your methods here given the lack of identification of sex increasing during the study?
+### L167 Don't repeat yourself. "between net size and sampling date" redundant. Instead, "effect or interactions".
+### L168 As above, you can include all of these as one statement: "density or juvenile proportion".
+L173 "likely not of practical interest".
+### L175. So did you check for homogeneity of variance? A larger range but similar mode suggests that the larger nets had increased variance. This doesn't necessarily affect your results but should be noted. This might be relevant for any attempt at bioenergetics modelling for instance. The quartile plots in Fig. 2 suggest that the smaller net mean lengths are skewed downward (lower quartile larger than upper) which is reversed in the larger nets (except in July, which is more likely driven by the bimodal distribution in this month and suggests (there is no testing?) that the distributions are not normal and means are unlikely to be relevant for this month). You might be better off testing the bimodal distribution as two distributions (mode to mode). This may be a result of the different efficiencies of the two net sizes (you make no note of flowmeter readings and in your next section you calculate efficiency using areal ratio). It also might be worth more text describing the different distributions of %juveniles since the august and September distributions are very different even though their modes are similar (the distribution tail).
+
+### L183. "probably not biologically relevant". Since you do not give these distributions (beyond the graphs), this isn't necessarily your call since some researchers may be focused on the very tails of the distribution that you dismiss. Instead, note that they are very small differences in numbers and that researchers interested in these larger individuals may wish to utilize the larger nets. Instead, move the sentence that is "Thus, these two nets…" up to be the second sentence (you state that there is essentially no difference in their distribution), then follow up with the caveat with respect to the larger size distribution afterwards.
+
+### L187. The slight bias where the smaller nets are missing the largest individuals may by more relevant in late October or November when many programs sample to get egg production rates. Larger individuals appear to be able to avoid the smaller nets (they are certainly more powerful swimmers) and may also detect a difference in the net-mouth "head-wave" if your efficiencies are different.
+
+### L203. As noted previously, be careful with your wording. Your equipment is similar to certain studies, but it can just as easily be said that your mesh size (for instance) is smaller than the majority that specifically are used to target mysids. Your comment on the size preventing loss of small mysids may be spurious. Given your distributions (and mean size of ~10mm) did you even see any mysids less than 1 mm in size (or even up to 3 mm)? Fig. 3 suggests you didn't, so you shouldn't expect net extrusion at a 3:1 ratio. If the mesh size was used to be consistent with other monitoring methods, then just state that, which is a perfectly fine reasoning and supported by your results.
+L214 "Our findings…"
+### L217 "While the larger net captured more…" - you have waited until here to note that there are two possible reasons (increased sampling area or reduced net avoidance). This should be in your first sentence of your discussion since it is the one factor which is clearly different between the sampling methods. Your second point about the large net also catching larger numbers of smaller individuals only suggests a sampling area effect (wording should be "did not support"). Both factors can be happening with the different size animals - larger mature adults are significantly more powerful swimmers than the smaller juveniles. Your last point in this paragraph should be expanded upon to note the comments listed above (that some researchers may be targeting the largest individuals to estimate population growth rates).
+L229. Remove "Conclusions" - it is the last paragraph anyway.
+L230. The term "biologically relevant" is loaded and likely to create disagreement even if there isn't any in the findings. You don't know what is biologically relevant to mysids or to other trophic levels that are affected by them (e.g. large individuals are known to have a significant impact on trophic dynamics beyond just their biomass (a la Fry and Quinones 1994, Ellis et al. 2011) and the presence of mysids will shift size structure of the entire plankton when present. Size is important.
+L236. This sentence essentially repeats the last in the previous paragraph. Combine them and expand on as noted in the L217 comment.
+
+Table 1: You can save a huge amount of space in your table by just using "Conical" instead of "Conical plankton" and "Pyramid" instead of "Inverted pyramid" on two lines and note in the caption (you should also explain "framed net"). This table can easily be portrait with this change thus freeing up more space. This table is a major source of your extremely large reference section. This would be better suited for a supplementary appendix since it is not directly essential to the finding of this study.
+
+Fig. 1. If you are going to note lat-long lines on your map, you should use a different line marking (e.g. dashed).
+Fig. 2 and Fig. 3 captions don't match your graphs because the next two figures pages are reversed.
+Fig. 2. The dots are means and the lines are modes? This isn't made clear. Axes titles may have to be larger.
+Fig. 3 The 1.0 m diameter net bars should be white to be consistent with the other graph. Font may have to be larger for the axes and the inset pie-graphs.
+
+
+
+
+
+
+
+
+This document shows the analyses performed in Johnson et. al. 
+
+
+## Model for counts by sex
+
+The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. To do this we use (\ref{eq:negBin}) above. We begin by loading the data where counts are divided into sex classes.
+
+```{r, echo=TRUE, message=FALSE, results="hide", eval=FALSE}
+## load data
+load("~/mysis/data/mysisSexCountData.RData")   
+## construct model matrix for covariates
+X <- model.matrix(~ net * gender + net * date + gender * date-1, 
+                  data=mysisSexCountData)
+## fit model
+nbmod <- glm.nb(y ~ ., data = data.frame(y=mysisSexCountData$count, X))
+```
+
+To explore this data in more detail we examine two sets of histograms, the counts of each sex class broken down by date in figure1 and the counts of each sex class broken down by net size in figure2. From these we see...
+
+```{r plot SexCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", fig.show="hold", eval=FALSE}
+ggplot(data=mysisSexCountData, aes(count)) +         
+  geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Histogram of normalized counts by sex and net size")
+ggplot(data=mysisSexCountData, aes(count)) +
+  geom_histogram() + facet_grid(gender ~ date) + 
+  ggtitle("Histogram of normalized counts by sex and date")
+```
+
+To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling, the interaction between net size and sampling date, and the interaction between sampling date and gender. The results shown below show that there is no evidence of an interaction between net size and sampling date and no evidence of an interaction between net size and gender. 
+
+```{r sexResults, echo=TRUE, cache=TRUE, eval=FALSE}
+tableData <- cbind(summary(nbmod)$coeff)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Net Size * Females", "Net Size * Juveniles", 
+                         "Net Size * Unknowns", "Net Size * August",
+                         "Net Size * September",
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+kable(tableData, digits = 4, format="html")
+```
+
+Thus, we refit the model without the interaction between net size and sampling date. To do this we start by loading the new covariate matrix $\mathbf{X}$.
+
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+X <- model.matrix(~ net * gender + gender * date, data=mysisSexCountData)
+nbmod <- glm.nb(y ~ . -1, data = data.frame(y=mysisSexCountData$count, X))
+```
+
+On this reduced model, the results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+```{r sexResultsReduced, echo=TRUE, cache=TRUE, eval=FALSE}
+tableData <- cbind(summary(nbmod)$coeff)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Net Size * Females", "Net Size * Juveniles", 
+                         "Net Size * Unknowns", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+kable(tableData, digits = 4, format="html")
+```
+
+## Model for proportion of juveniles
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE, eval=TRUE}
+set.seed(123)
+data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40,
+                         header = TRUE, stringsAsFactors=FALSE)
+
+prop <- c(as.numeric(data_one_way$full.2),    ## proportion of females full net
+             as.numeric(data_one_way$half.2)) ## proportion of females half net
+N <- length(prop)
+## Set improper values to NA
+
+date <- rep(as.factor(data_one_way$month), 2)
+net <- as.factor(c(rep("full", 40), rep("half", 40)))
+data <- data.frame(prop=prop, date=date, net=net)
+levels(data$date) <- c("July", "August", "Septempber")
+levels(data$net) <- c("Small Net", "Large Net")
+X <- model.matrix(~ net * date)
+library(betareg)
+brmod <- betareg(prop ~ . -1, data = data.frame(prop, X))
+summary(brmod)
+```
+
+```{r plotJuviCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", eval=FALSE}
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .) + 
+  ggtitle("Histogram of proportion of juveniles by net size")
+```
+
+To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=`r I(round(summary(brmod)$coef$mean[2, 4], 4))`).
+
+```{r juvenileResults, echo=TRUE, cache=TRUE, eval=FALSE}
+tableData <- cbind(summary(brmod)$coeff$mean)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
+                         "Net Size * August", "Net Size * September")
+kable(tableData, digits = 4, format="html")
+```
+
+## Length model
+
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE, eval=TRUE}
+# data_length <- read.csv("~/mysis/data/lengthData.csv", skip = 4, header = TRUE)
+# net <- data_length$Size..m.
+# y <- data_length$Length..mm.
+# gender <- as.factor(substr(str_trim(as.character(data_length$Gender)), 0, 1))
+# station <- data_length$Station
+# date <- as.numeric(data_length$Date)
+# date[7330:7519] <- 4
+# date[7559:7773] <- 4
+# date[date == 2] <- 1      ## collapse into monthly values
+# date[date == 3] <- 2
+# date[date == 4] <- 3
+# date <- as.factor(date)
+# # plot(as.numeric(date), type='l', main = "Data looks better")
+# data <- data.frame(y=y, date=date, net=as.factor(net), gender=gender)
+# levels(data$date) <- c("July", "August", "Septempber")
+# levels(data$net) <- c("Small Net", "Large Net")
+# levels(data$gender) <- c("Female", "Juvenile", "Male", "Unknown")
+
+load("~/mysis/data/mysisLengthData.RData")
+X <- model.matrix(~ net + date + gender, data=mysisLengthData)
+idx <- attr(uniquecombs(X), "index")
+summary(lmmod <- lm(y ~ net + date * gender, data=mysisLengthData))
+library(lme4)
+# summary(lmemod <- lmer(y ~ net * date + net * gender +
+#                          date * gender + (1|station), data=mysisLengthData))
+# summary(lmemod <- lmer(y ~ net + date * gender + (1|station),
+#                        data=mysisLengthData))
+# summary(rlmmod <- rlm(y ~ net * date + net * gender + 
+#                         date * gender, data=mysisLengthData))))
+summary(rlmmod <- rlm(y ~ net + date * gender, data=mysisLengthData))
+tvalues <- summary(rlmmod)$coefficients[, 3]
+df <- summary(rlmmod)$df[2]
+pvalues <- pt(abs(tvalues), df, lower.tail=FALSE) * 2
+```
+
+```{r plotLength, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", fig.show="hold", eval=FALSE}
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ date) +
+  ggtitle("Lengths by net size")
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Lengths by sex and net size")
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(date ~ gender) + 
+  ggtitle("Lengths by sex and date")
+```
+
+```{r lengthResults, echo=TRUE, cache=TRUE, eval=FALSE}
+tableData <- cbind(summary(rlmmod)$coeff, pvalues)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+
+kable(tableData, digits = 4, format="html")
+```
+
+
+
+```{r effect size, echo=TRUE, eval=FALSE}
+SD <- sqrt(((sum(mysisLengthData$net == "Large Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Large Net"])^2 + 
+              (sum(mysisLengthData$net == "Small Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Small Net"])^2) / 
+             (sum(mysisLengthData$net == "Large Net") + 
+                sum(mysisLengthData$net == "Small Net")))
+
+d <- (mean(mysisLengthData$y[mysisLengthData$net == "Large Net"]) - 
+        mean(mysisLengthData$y[mysisLengthData$net == "Small Net"])) / SD
+```
+We see that there is a significant effect of net size on mean length caught (p = `r I(pvalues[2])`) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.
+
+
