@@ -23,15 +23,24 @@ library(lme4)
 
 
 
+Associate Editor:
+This is a useful analysis of mysid sampling methods that has implications to Great Lakes and beyond. The paper has received two careful reviews. Both reviewers were generally positive, but have some suggestions for improvements.  
 
-After loading the data, we can look at histograms of data to get a better understanding of what variables effect mysis shrimp count. First we examine the total counts broken down by net size and sampling month
+### Both reviewers wanted to know why you did not use a paired t test when comparing the two net types, which given the paired approach to sampling would appear to be the most appropriate method to analyze the data. If you have reasons not to use that approach, please elaborate in your response letter and add a sentence or two to the methods.  
+
+We begin the analysis by loading the data used for measuring total count. At each sampling event we recorded the number of mysis shrimp caught and important covariates including date, site, net size, etc. 
+
+```{r totalCount, echo=TRUE, include=TRUE, message=FALSE, cache=TRUE, eval=TRUE}
+load("~/mysis/data/mysisCountData.RData")                                 ## load count data
+``` 
+
+By looking at the distributions of counts across time, we see that they are similar between net sizes, but the normality of the counts is questionable.
 
 ```{r plotCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", eval=FALSE}
 ggplot(data=mysisCountData, aes(count)) + geom_histogram() + facet_grid(net ~ date) + 
   ggtitle("Histogram of normalized counts by net size and date")
 ```
-
-From these histograms, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. We test this formally by fitting a model to compare if the count of shrimp caught by the large net is the same as the count of shrimp caught by the large net, after normalizing for the area of the two nets and controlling for covariates. Because counts cannot be less that zero and often are right skewed, the assumption of Normality in the data is questionable. Hence, we don't want to use Gaussian methods like linear regression and ANOVA. But, for completeness, let's look a a paired t-test and see what the results look like with the knowledge that this analysis is less than satisfactory.
+Because counts cannot be less that zero and often are right skewed, the assumption of Normality in the data is questionable. Hence, we don't want to use Gaussian methods like linear regression and ANOVA. But, for completeness, let's look a a paired t-test and see what the results look like with the knowledge that this analysis is less than satisfactory.
 
 ```{r pariedTTest}
 y1 <- mysisCountData$count[mysisCountData$net == "Small Net"]
@@ -39,58 +48,107 @@ y2 <- mysisCountData$count[mysisCountData$net == "Large Net"]
 pairttest <- t.test(y1, y2, paired=TRUE)
 ```
 
-From the paired t-test, we find that there is no significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value` ) in expected counts (after accounting for the different surface areas between the nets)
+From the paired t-test, we find that there is no significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value` ) in expected counts.
 
-Luckily, the class of models known a generalized linear models (or glms) offers a solution. These models allow for regression models that control for the effects of covariates like linear regression but do not assume the normal distribution. For count data, there are two natural distributions to use: the Poisson distribution and the negative binomial distribution. The Poisson distribution has the strong assumption that the mean equals the variance, which is often not met in practical datasets. In our data, the count means are $(`r I(mns)`)$ and the count variances are $(`r I(vars)`)$, for the small and large nets, respectively. Therefore we use a negative binomial model
-$$
-\label{neg:bin}
-y_i \sim \mbox{NegBin}(\mu_i, \phi),
-$$
-where $\mu$ is the mean of the negative binomial distribution and $\phi$ is an overdispersion parameter that allows for the mean and variance to be different. We model $\mu$ with covariates using a log link function
-$$ 
-\mu_i = log(\mathbf{X}_i \boldsymbol{\beta}),
-$$
-where $\mathbf{X}_i$ is the set of covariates for observation $i$. Then we perform inference on our coefficients $\boldsymbol{\beta}$, where the interpretation of $\beta_j$ is a percent change in count per unit change in $X_{ij}$.
+We can also look at a paired t-test for the mean length of the nets, although this loses alot of information because we are only testing the sample level means without accounting for the differences in uncertainties about the site level means due to different sample sizes between nets
 
-```{r totalCountModel, echo=TRUE, eval=TRUE, results="hide"}
-## construct covariates of net size, date and their interaction
-X <- model.matrix(~ net * date - 1, data=mysisCountData)  
-## fit negative binomial model
-summary(nbmod <- glm.nb(y ~ ., data = data.frame(y=mysisCountData$count, X)))
-## get coefficient estimates
-coefs <- c(nbmod$coefficients, nbmod$theta)           
+```{r lengthData}
+load("~/mysis/data/mysisLengthData.RData")
 ```
 
-To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+First lets look at some histograms and get an idea of what the data look like.
 
+```{r, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", fig.show="hold", eval=FALSE}
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ date) +
+  ggtitle("Lengths by net size")
+```
 
-```{r countModelResults, echo=TRUE, eval=FALSE}
-tableData <- cbind(summary(nbmod)$coeff[1:6, ])
+When looking at the distribution of lengths between the two net sizes, we see that the histograms look quite similar across the different dates. What stands out is that the small net catches about a quarter of the number of shrimp, as expected by the difference in net sizes, whereas the general shapes of the histograms appear quite similar across net sizes, suggesting there is not a difference in shrimp length distribution between nets across time.
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", fig.show="hold", eval=FALSE}
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Lengths by sex and net size")
+```
+
+When we plot the distribution of lengths between the net sizes with respect to sex class, the distributions look quite similar as well. This suggests that there is not a lot of difference in length distribution of shrimp between the two net sizes when broken down by sex class.
+
+```{r pairedTTestLength}
+y1 <- by(mysisLengthData$y[mysisLengthData$net == "Small Net"], 
+         mysisLengthData$label[mysisLengthData$net == "Small Net"], mean)
+y1 <- y1[!is.na(y1)]
+y2 <- by(mysisLengthData$y[mysisLengthData$net == "Large Net"], 
+         mysisLengthData$label[mysisLengthData$net == "Large Net"], mean)
+y2 <- y2[!is.na(y2)]
+pairttestlength <- t.test(y1, y2, paired=TRUE)
+layout(matrix(1:2,2,1))
+hist(y1)
+hist(y2)
+```
+
+From the paired t-test, we find that there is a significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value` ) in expected counts, although the $p$-value is close to the 0.05 level. Despite the statistically significant difference, the practical difference is quite small as judged by the histograms and small difference in shrimp size.
+
+To better account for the different sample sizes and other ....
+
+```{r}
+
+X <- model.matrix(~ net + date + gender, data=mysisLengthData)
+idx <- attr(uniquecombs(X), "index")
+summary(lmmod <- lm(y ~ net + date + gender + station, data=mysisLengthData))
+library(lme4)
+# summary(lmemod <- lmer(y ~ net * date + net * gender +
+#                          date * gender + (1|station), data=mysisLengthData))
+# summary(lmemod <- lmer(y ~ net + date * gender + (1|station),
+#                        data=mysisLengthData))
+# summary(rlmmod <- rlm(y ~ net * date + net * gender + 
+#                         date * gender, data=mysisLengthData))))
+summary(rlmmod <- rlm(y ~ net + date + gender + station, data=mysisLengthData))
+tvalues <- summary(rlmmod)$coefficients[, 3]
+df <- summary(rlmmod)$df[2]
+pvalues <- pt(abs(tvalues), df, lower.tail=FALSE) * 2
+```
+
+```{r lengthResults, echo=TRUE, cache=TRUE, eval=FALSE}
+tableData <- cbind(summary(rlmmod)$coeff, pvalues)
 colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
-                         "Net Size * August", "Net Size * September")
+rownames(tableData) <- c("Intercept", "Net Size",  "August", "September", 
+                         "Juveniles", "Males", "Unknown Gender",
+                         "Station 10", "Station 2", "Station 3", "Station 4",
+                         "Station 5", "Station 6", "Station 7", "Station 8",
+                         "Station 9")
+
 kable(tableData, digits = 4, format="html")
 ```
 
-Associate Editor:
-This is a useful analysis of mysid sampling methods that has implications to Great Lakes and beyond. The paper has received two careful reviews. Both reviewers were generally positive, but have some suggestions for improvements.  
+Although the statistical test is significant, we have very large sample sizes and and the regression coefficients are small relative to the other sources of variation in the model. Of greater interest is whether the observed effect is of practical significance.
 
-### Both reviewers wanted to know why you did not use a paired t test when comparing the two net types, which given the paired approach to sampling would appear to be the most appropriate method to analyze the data. If you have reasons not to use that approach, please elaborate in your response letter and add a sentence or two to the methods.  
+```{r effect size, echo=TRUE, eval=TRUE}
+SD <- sqrt(((sum(mysisLengthData$net == "Large Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Large Net"])^2 + 
+              (sum(mysisLengthData$net == "Small Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Small Net"])^2) / 
+             (sum(mysisLengthData$net == "Large Net") + 
+                sum(mysisLengthData$net == "Small Net")))
 
-We begin the analysis by loading the data used for measuring total count. At each sampling event $i$ we recorded the number of mysis shrimp caught and important covariates including date, site, net size, etc. 
+d <- (mean(mysisLengthData$y[mysisLengthData$net == "Large Net"]) - 
+        mean(mysisLengthData$y[mysisLengthData$net == "Small Net"])) / SD
+```
 
-```{r totalCount, echo=TRUE, include=TRUE, message=FALSE, cache=TRUE, eval=TRUE}
-load("~/mysis/data/mysisCountData.RData")                                 ## load count data
-``` 
-
+We see that there is a significant effect of net size on mean length caught (p = `r I(pvalues[2])`) after controlling for date, gender class, and sampling location. Although this is statisticallly significant, the effect size is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). Given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest. Another measure of effect size is Cohen's $d$ which measures the difference in means relative to a pooled standard deviation. For our data, Cohen's $d$=`r I(d)`, which implies that the effect of net size is quite small in terms of practical significance.
 
 
 ## Another issue to consider is the catch of a few large and small individuals in the larger nets.  You should be able to test if that is simply due to the larger sample size obtained in the larger net. You suggest that may be the case.
 
+In actuallity, this is quite a complicated statistical test as you are now testing the extreme observations of each sample. I prefer to look at the histograms and see that the distributions between net sizes for all of the different subsets of the data are consistent rather than do a formal statistical test (which is much more complicated). A quick and dirty extreme value analysis suggests that the model parameters for the generalized extreme value distributions are quite similar for the two net sizes, suggesting that both nets sample the large shrimp equally.
+
+```{r}
+gev.fit(xdat=mysisLengthData$y[mysisLengthData$net == "Small Net"])
+gev.fit(xdat=mysisLengthData$y[mysisLengthData$net == "Large Net"])
+```
+
+
 ### Finally, the length analysis is using every measured mysids as an independent sampling unit.  I think it would be more appropriate to use a paired t test on the mean lengths for that comparison as well, using each net instead of each mysid as the sampling unit. There is always the possibility that different size groups occur in different areas of the reservoir, and therefore that each mysids measured are not independent from the other mysids measured in a given net haul. Please consider that in your response.
 
-Lars
-
+It is true that different sized groups occur at different areas in the reservior, but that is accounted for in the linear regression model (a paired t-test is a speical case of a linear regression model). When performing a paired t-test, it requires collapsing each site's length distribution to a mean, which necessarily loses information about the distribution of lengths at each site. The linear model above properly accounts for that extra variability in the lengths at each site.
 
 ## Reviewers' comments:
 
@@ -98,7 +156,14 @@ Lars
 
 ### 8)      Line 145, 150 I'm not sure you controlled for these factors, rather it seems like they were factors in the analysis?
 
+By including these factors in the regression model, it controls for their influence.
+
 ### 9)      Line 149 I don't think the mean length is the correct variable of interest.  The size distributions could be very different and provide similar mean lengths.  Rather, I think an analysis of the size structure is appropriate, perhaps using some sort of contingency table to evaluate the homogeneity of proportions.  I also think the analysis of population structure (male-female, juvenile) and male:female ratio would be more appropriately done by testing for homegenity of proportions and then looking at standardized deviation to see where the nets differed (if at all).
+
+While a contigency table is a possible analysis, the beta regression model is a more flexible model. A contingency table to evaluate a homogeniety of proportions is a special case of the beta regression model (just as the t-test is a special case of a regression model). I prefer to analyze the data using a regression framework as it is a more general framework that can account for multiple covariates at once (jointly estimating all the effects) instead of having to construct a table and perform analyses one at a time (marginally estimate effects).
+
+
+
 
 ### 10)     The analysis of abundance (and other factors) was done basically to see if this study was done with one net or the other, would the results over the reservoir differ.  This is an interesting question and an important one to address.  But the net tows were done in paired combinations, so there is more information here.  I would like to see something like a paired t-test (using each individual set of net tows as a sample), or a regression of values from one net plotted against the other from each sample to see if there was any bias based on the paired tows.
 
@@ -177,7 +242,7 @@ This document shows the analyses performed in Johnson et. al.
 
 The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. To do this we use (\ref{eq:negBin}) above. We begin by loading the data where counts are divided into sex classes.
 
-```{r, echo=TRUE, message=FALSE, results="hide", eval=FALSE}
+```{r, echo=TRUE, message=FALSE, results="hide", eval=TRUE}
 ## load data
 load("~/mysis/data/mysisSexCountData.RData")   
 ## construct model matrix for covariates
@@ -217,7 +282,7 @@ kable(tableData, digits = 4, format="html")
 
 Thus, we refit the model without the interaction between net size and sampling date. To do this we start by loading the new covariate matrix $\mathbf{X}$.
 
-```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE, eval=TRUE}
 X <- model.matrix(~ net * gender + gender * date, data=mysisSexCountData)
 nbmod <- glm.nb(y ~ . -1, data = data.frame(y=mysisSexCountData$count, X))
 ```
@@ -321,32 +386,7 @@ ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(date ~ gend
   ggtitle("Lengths by sex and date")
 ```
 
-```{r lengthResults, echo=TRUE, cache=TRUE, eval=FALSE}
-tableData <- cbind(summary(rlmmod)$coeff, pvalues)
-colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
-                         "Unknown Gender", "August", "September", 
-                         "Females * August", "Juveniles * August", 
-                         "Unknown Gender * August",
-                         "Females * September", "Juveniles * September", 
-                         "Unknown Gender * September")
-
-kable(tableData, digits = 4, format="html")
-```
 
 
-
-```{r effect size, echo=TRUE, eval=FALSE}
-SD <- sqrt(((sum(mysisLengthData$net == "Large Net") - 1) *
-              sd(mysisLengthData$y[mysisLengthData$net == "Large Net"])^2 + 
-              (sum(mysisLengthData$net == "Small Net") - 1) *
-              sd(mysisLengthData$y[mysisLengthData$net == "Small Net"])^2) / 
-             (sum(mysisLengthData$net == "Large Net") + 
-                sum(mysisLengthData$net == "Small Net")))
-
-d <- (mean(mysisLengthData$y[mysisLengthData$net == "Large Net"]) - 
-        mean(mysisLengthData$y[mysisLengthData$net == "Small Net"])) / SD
-```
-We see that there is a significant effect of net size on mean length caught (p = `r I(pvalues[2])`) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.
 
 
