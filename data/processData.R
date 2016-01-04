@@ -71,3 +71,158 @@ save(mysisLengthData, file='~/mysis/data/mysisLengthData.RData')
 ## remove data to elimate conflicts
 rm(list=ls())
 
+## 
+## Juvenile ratio data
+##
+
+fullData <- read.csv("~/mysis/data/lengthData.csv", skip=4)
+
+males <- rep(0, 80)
+females <- rep(0, 80)
+juveniles <- rep(0, 80)
+unknowns <- rep(0, 80)
+size <- rep(0, 80)
+date_tmp <- rep(0, 80)
+station <- rep(0, 80)
+
+idx <- 1
+for(i in unique(fullData$Sample.Label)){
+  tmp_data = subset(fullData, fullData$Sample.Label == i)
+  tmp = substr(as.character(tmp_data$Gender), 0, 1)
+  males[idx] <- sum(tmp == "M")
+  juveniles[idx] <- sum(tmp == "J")
+  females[idx] <- sum(tmp == "F")
+  unknowns[idx] <- sum(tmp == "U")
+  size[idx] <- tmp_data$Size..m.[1]
+  date_tmp[idx] <- tmp_data$Date[1]
+  station[idx] <- tmp_data$Station[1]
+  idx <- idx + 1
+}
+prop <- juveniles / (juveniles + females + males + unknowns)
+
+## Correct for mislabeling
+date_tmp[70] <- 4
+date_tmp[72] <- 4
+date <- rep(0, 80)
+date[date_tmp == 1] <- "July"
+date[date_tmp == 2] <- "July"
+date[date_tmp == 3] <- "August"
+date[date_tmp == 4] <- "September"
+
+date <- factor(date, levels=c("July", "August", "September"))
+size[size == 0.5] <- "Small Net"
+size[size == 1.0] <- "Large Net"
+net <- factor(size, levels=c("Small Net", "Large Net"))
+station <- factor(station)
+mysisJuvenileData <- data.frame(prop=prop, date=date, net=net, station=station)
+
+## Save RData file
+save(mysisJuvenileData, file='~/mysis/data/mysisJuvenileData.RData')
+## remove data to elimate conflicts
+rm(list=ls())
+
+## 
+## Sex ratio data
+##
+
+fullData <- read.csv("~/mysis/data/lengthData.csv", skip=4)
+
+males <- rep(0, 80)
+females <- rep(0, 80)
+unknowns <- rep(0, 80)
+size <- rep(0, 80)
+date_tmp <- rep(0, 80)
+station <- rep(0, 80)
+
+idx <- 1
+for(i in unique(fullData$Sample.Label)){
+  tmp_data = subset(fullData, fullData$Sample.Label == i)
+  tmp = substr(as.character(tmp_data$Gender), 0, 1)
+  males[idx] <- sum(tmp == "M")
+  females[idx] <- sum(tmp == "F")
+  unknowns[idx] <- sum(tmp == "U")
+  size[idx] <- tmp_data$Size..m.[1]
+  date_tmp[idx] <- tmp_data$Date[1]
+  station[idx] <- tmp_data$Station[1]
+  idx <- idx + 1
+}
+prop <- females / (females + males)
+prop_corrected <- (females + 0.5 * unknowns) / 
+  (females + males + unknowns)
+prop[prop == 0] <- 0.01
+prop_corrected[prop_corrected == 0] <- 0.01
+## Correct for mislabeling
+date_tmp[70] <- 4
+date_tmp[72] <- 4
+date <- rep(0, 80)
+date[date_tmp == 1] <- "July"
+date[date_tmp == 2] <- "July"
+date[date_tmp == 3] <- "August"
+date[date_tmp == 4] <- "September"
+
+date <- factor(date, levels=c("July", "August", "September"))
+size[size == 0.5] <- "Small Net"
+size[size == 1.0] <- "Large Net"
+net <- factor(size, levels=c("Small Net", "Large Net"))
+station <- factor(station)
+mysisSexData <- data.frame(prop=prop, date=date, net=net, station=station)
+
+## Save RData file
+save(mysisSexData, file='~/mysis/data/mysisSexData.RData')
+## remove data to elimate conflicts
+rm(list=ls())
+
+## 
+## Sex count data
+##
+
+fullData <- read.csv("~/mysis/data/lengthData.csv", skip=4)
+
+males <- rep(0, 80)
+females <- rep(0, 80)
+juveniles <- rep(0, 80)
+unknowns <- rep(0, 80)
+size <- rep(0, 80)
+date_tmp <- rep(0, 80)
+station <- rep(0, 80)
+
+idx <- 1
+for(i in unique(fullData$Sample.Label)){
+  tmp_data = subset(fullData, fullData$Sample.Label == i)
+  tmp = substr(as.character(tmp_data$Gender), 0, 1)
+  males[idx] <- sum(tmp == "M")
+  juveniles[idx] <- sum(tmp == "J")
+  females[idx] <- sum(tmp == "F")
+  unknowns[idx] <- sum(tmp == "U")
+  size[idx] <- tmp_data$Size..m.[1]
+  date_tmp[idx] <- tmp_data$Date[1]
+  station[idx] <- tmp_data$Station[1]
+  idx <- idx + 1
+}
+
+## construct count vector
+count <- c(males, females, juveniles, unknowns)
+gender <- factor(rep(1:4, each=80))
+## Correct for mislabeling
+date_tmp[70] <- 4
+date_tmp[72] <- 4
+date <- rep(0, 80)
+date[date_tmp == 1] <- "July"
+date[date_tmp == 2] <- "July"
+date[date_tmp == 3] <- "August"
+date[date_tmp == 4] <- "September"
+
+date <- factor(date, levels=c("July", "August", "September"))
+size[size == 0.5] <- "Small Net"
+size[size == 1.0] <- "Large Net"
+net <- factor(size, levels=c("Small Net", "Large Net"))
+station <- factor(station)
+count[rep(net, times=4) == 0.5] <- count[rep(net, times=4) == 0.5] * 4
+mysisSexCountData <- data.frame(count=count, date=rep(date, times=4), 
+                                net=rep(net, times=4), gender=gender, 
+                                station=rep(station, times=4))
+
+## Save RData file
+save(mysisSexCountData, file='~/mysis/data/mysisSexCountData.RData')
+## remove data to elimate conflicts
+rm(list=ls())
