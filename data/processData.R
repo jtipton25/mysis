@@ -202,7 +202,7 @@ for(i in unique(fullData$Sample.Label)){
 
 ## construct count vector
 count <- c(males, females, juveniles, unknowns)
-gender <- factor(rep(1:4, each=80))
+gender <- factor(rep(c("M", "F", "J", "U"), each=80))
 ## Correct for mislabeling
 date_tmp[70] <- 4
 date_tmp[72] <- 4

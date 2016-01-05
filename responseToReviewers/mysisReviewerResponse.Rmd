@@ -26,10 +26,11 @@ library(car)
 library(betareg)
 ```
 
-We tested many of the population characteristics to see if there was any difference between the two sized nets. Our main questions of interest are 1) Is there a difference in abundance of Mysids caught between the two nets, 2) Is there a difference in mean length of Mysids caught between the two nets, and 3) Does the count when broken down by age and sex class differ between the two net sizes.
+To determine if there was any difference between the two sized nets, we have a few questions of interest. Our main questions of interest are 1) Is there a difference in density of *Mysids* caught between the two nets, 2) Is there a difference in mean length of *Mysids* caught between the two nets, and 3) Does the density when broken down by age and sex class differ between the two net sizes? Note that we will use count and density interchangeable in what follows because we normalize to a one $m^2$ area.
 
-1) 
-We test if the abundance of Mysids caught differs between the two nets. By looking at the distributions of counts across time, we see that they are similar between net sizes, but the normality of the counts is questionable.
+
+1) Is there a difference in density of *Mysids* caught between the two nets?
+
 
 ```{r totalCount, eval=TRUE}
 load("~/mysis/data/mysisCountData.RData")                                 ## load count data
@@ -37,10 +38,10 @@ load("~/mysis/data/mysisCountData.RData")                                 ## loa
 
 ```{r plotCount, eval=TRUE, include=TRUE}
 ggplot(data=mysisCountData, aes(count)) + geom_histogram() + facet_grid(net ~ date) + 
-  ggtitle("Histogram of normalized counts by net size and date")
+  ggtitle("Normalized counts by net size and date")
 ```
 
-From the histogram, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. Because counts cannot be less that zero and often are right skewed, the assumption of normality in the data is questionable. Hence, methods like linear regression, t-tests, and ANOVA that assume normal distributions are not ideal, but, for completeness we begin with a paired t-test.
+By looking at the distributions of counts across time, we see that they are similar between net sizes, but the normality of the counts is questionable. From the histogram, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. Because counts cannot be less that zero and often are right skewed, the assumption of normality in the data is questionable. Hence, methods like linear regression, t-tests, and ANOVA that assume normal distributions are not ideal, but, for completeness we begin with a paired t-test.
 
 ```{r pariedTTest}
 y1 <- mysisCountData$count[mysisCountData$net == "Small Net"]
@@ -48,14 +49,14 @@ y2 <- mysisCountData$count[mysisCountData$net == "Large Net"]
 pairttest <- t.test(y1, y2, paired=TRUE)
 ```
 
-From the paired t-test, we find that there is no significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value` ) in expected counts.
+From the paired t-test, we find that there is no significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value`) in expected counts.
 
 ```{r totalCountPoisson, message=FALSE}
 mns <- by(mysisCountData[, "count"], mysisCountData[, "net"], mean)       ## mean of counts by net size
 vars <- by(mysisCountData[, "count"], mysisCountData[, "net"], var)       ## variance of counts by net size
 ``` 
 
-We test for a difference in counts between the nets formally by fitting a model to compare if the count of Mysids caught by the large net is the same as the count of Mysids caught by the large net, after normalizing for the area of the two nets and controlling for covariates. The class of models known as generalized linear models (glms) offers a rigorous solution for modeling count data. These models allow for regression models that control for the effects of covariates like linear regression but do not assume a normal distribution. For count data, there are two natural distributions to use: the Poisson distribution and the negative binomial distribution. The Poisson distribution has the strong assumption that the mean equals the variance, which is often not met in practical datasets. In our data, the count means are $(`r I(mns)`)$ and the count variances are $(`r I(vars)`)$, for the small and large nets, respectively. Therefore we use a negative binomial model
+We test for a difference in density between the nets formally by fitting a model to compare if the count of *Mysids* caught by the large net is the same as the count of *Mysids* caught by the large net, after normalizing for the area of the two nets and controlling for covariates. The class of models known as generalized linear models (glms) offers a rigorous solution for modeling count data. These models allow for regression models that account for the effects of covariates like in linear regression but do not assume a normal distribution. For count data, there are two natural distributions to use: the Poisson distribution and the negative binomial distribution. The Poisson distribution has the strong assumption that the mean equals the variance, which is often not met in practical datasets. In our data, the count means are $(`r I(mns)`)$ and the count variances are $(`r I(vars)`)$, for the small and large nets, respectively. Therefore, we use a negative binomial model
 $$
 \label{neg:bin}
 y_i \sim \mbox{NegBin}(\mu_i, \phi),
@@ -72,7 +73,7 @@ summary(nbmod <- glm.nb(count ~ net + date + station, data=mysisCountData))
 coefs <- c(nbmod$coefficients, nbmod$theta)           
 ```
 
-To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and sampling location. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes ($z$-value = `r I(round(summary(nbmod)$coef[2, 3], 4))`, $p$-value=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+To test for a change in total counts between the two net sizes, we construct a negative binomial regression model that examines the effect of net size while accounting for date of sampling and sampling location. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes ($z$-value = `r I(round(summary(nbmod)$coef[2, 3], 4))`, $p$-value=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
 
 ```{r countModelResults, eval=FALSE}
 tableData <- cbind(summary(nbmod)$coeff[1:6, ])
@@ -84,8 +85,8 @@ kable(tableData, digits = 4, format="html")
 
 
 
-2) 
-The next population characteristic of interest is whether we are catching the same size Mysids with each net. First we examine some histograms and get an idea of what the length data look like.
+2) Is there a difference in mean length of *Mysids* caught between the two nets?
+First we examine some histograms and get an idea of what the length data look like.
 
 ```{r lengthData}
 load("~/mysis/data/mysisLengthData.RData")
@@ -96,16 +97,14 @@ ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ date)
   ggtitle("Lengths by net size")
 ```
 
-When looking at the distribution of lengths between the two net sizes, we see that the histograms look quite similar across the different dates. What stands out is that the small net catches about a quarter of the number of shrimp, as expected by the difference in net sizes, whereas the general shapes of the histograms appear quite similar across net sizes, suggesting there is not a difference in shrimp length distribution between nets across time.
+When looking at the distribution of lengths between the two net sizes, we see that the histograms look quite similar across the different dates, with a general increasing trend through time. What stands out is that the small net catches about a quarter of the number of *Mysids*, as expected by the difference in net sizes, whereas the general shapes of the histograms appear quite similar across net sizes, suggesting there is not a difference in *Mysid* length distribution between nets across time.
 
 ```{r, eval=TRUE, include=TRUE}
 ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ gender) + 
   ggtitle("Lengths by sex and net size")
 ```
 
-When we plot the distribution of lengths between the net sizes with respect to sex class, the distributions look quite similar as well. This suggests that there is not a lot of difference in length distribution of shrimp between the two net sizes when broken down by sex class.
-
-Next, we plot histograms of the sampling events (80 sampling events – 10 sites, 2 nets, 4 dates) as a paired data set.
+When we plot the distribution of lengths between the net sizes with respect to sex class, the distributions look quite similar as well. This suggests that there is not a lot of difference in length distribution of *Mysids* between the two net sizes when broken down by sex class.
 
 ```{r pairedTTestLength}
 y1 <- by(mysisLengthData$y[mysisLengthData$net == "Small Net"], 
@@ -119,7 +118,7 @@ pairttestlength <- t.test(y1, y2, paired=TRUE)
 qplot(y1-y2, xlab="difference in means")
 ```
 
-From the histogram of paired differences, it looks like there is some light evidence that the smaller net catches slightly smaller shrimp, although the distribution does seems to be centered near 0. From the paired t-test, we find that there is a significant difference ($t$ = `r pairttestlength$statistic`, $df$ = `r pairttestlength$parameter`, $p$-value = `r pairttestlength$p.value` ) in expected counts, although the $p$-value is close to the 0.05 level. Despite the statistically significant difference, the practical difference is quite small as judged by the histograms and small difference in shrimp size.
+From the histogram of paired differences, it looks like there is some light evidence that the smaller net catches slightly smaller *Mysids*, although the distribution appears to be centered near 0. From the paired t-test, we find that there is a significant difference ($t$ = `r pairttestlength$statistic`, $df$ = `r pairttestlength$parameter`, $p$-value = `r pairttestlength$p.value`) in expected counts, although the $p$-value is close to the 0.05 level. Despite the statistically significant difference, the practical difference is quite small as judged by the histograms and small difference in mean *Mysid* size difference (`r pairttestlength$estimate` mm).
 
 
 ```{r pairedTTestLengthtrim}
@@ -134,9 +133,9 @@ pairttestlengthtrim <- t.test(y1trim, y2trim, paired=TRUE)
 qplot(y1trim-y2trim, xlab="difference in trimmed means")
 ```
 
-One could argue that because the larger net catches four times the number of shrimp, the large net is more likely to catch shrimp at the extremes of the size classes (either really small or really large Mysids). To account for this, we perform a paired t-test using a trimmed mean, removing the smallest and largest 5% of the lengths before calculating the sample mean. From the paired t-test using the trimmed means, we find that there is not a significant difference ($t$ = `r pairttestlengthtrim$statistic`, $df$ = `r pairttestlengthtrim$parameter`, $p$-value = `r pairttestlengthtrim$p.value` ) in expected counts, although the $p$-value is close to the 0.05 level. As with the untrimmed means, the practical difference is quite small as judged by the histograms and small difference in shrimp size.
+One could argue that because the larger net catches four times the number of *Mysids*, the large net is more likely to catch *Mysids* at the extremes of the size classes (either really small or really large *Mysids*). To account for this, we perform a paired t-test using a trimmed mean, removing the smallest and largest 5% of the lengths before calculating the sample mean. From the paired t-test using the trimmed means, we find that there is not a significant difference ($t$ = `r pairttestlengthtrim$statistic`, $df$ = `r pairttestlengthtrim$parameter`, $p$-value = `r pairttestlengthtrim$p.value`) in expected counts, although the $p$-value is close to the 0.05 level. As with the untrimmed means, the practical difference is quite small as judged by the histograms and small difference in mean *Mysid* size difference (`r pairttestlengthtrim$estimate` mm).
 
-To better account for the different sample sizes (the group means are from unbalanced sample sizes), we fit a linear model and a robust linear model (that assumes overdispersion in the data). We start by checking for heterogeniety in the group variances.
+To better account for the different sample sizes (the group means are from unbalanced sample sizes), we fit a linear model and a robust linear model (that assumes overdispersion in the data). We start by checking for heterogeneity in the group variances.
 
 ```{r}
 vars <- as.vector(by(mysisLengthData$y, mysisLengthData$label, var))
@@ -145,7 +144,7 @@ bart_test <- bartlett.test(mysisLengthData$y, mysisLengthData$label)
 levene_test <- leveneTest(mysisLengthData$y, mysisLengthData$label)
 ```
 
-When looking at the distribution of sampling variance by sampling occasion (10 locations, 2 nets, 4 different dates gives 80 total sampling ocassions), we see that there is some difference in variance of lengths by sampling occasion and Bartlett's test ($p$-value = `r bart_test$p.value`) and Levene's test ($p$-values = `r levene_test$Pr[1]`).
+When looking at the distribution of sampling variance by sampling occasion (10 locations, 2 nets, and 4 different sampling dates gives 80 total sampling occasions), we see that there is some difference in variance of lengths by sampling occasion and Bartlett's test ($p$-value = `r bart_test$p.value`) and Levene's test ($p$-values = `r levene_test$Pr[1]`).
 
 To test if there is a difference in length of net sizes while accounting for heterogeneity, we use a weighted least squares regression where the weights are the inverse of the group variances.
 
@@ -164,9 +163,9 @@ summary(weightedlm <- lm(y ~ net + date + gender + station,
                           data=mysisLengthData, weights=w))
 ```
 
-From the weighted least squares regression, we find that there is a statistically signficant difference in mean Mysid length caught between the two nets ($t$ = `r summary(weightedlm)$coefficients[2, 3]`, $p$-value = `r summary(weightedlm)$coefficients[2, 4]`). Now, after accounting for the location, date, sex distribution, and heterogeneity of variance we find that the difference in mean length caught between the two net sizes is `r summary(weightedlm)$coefficients[2, 1]` mm.
+From the weighted least squares regression, we find that there is a statistically significant difference in mean *Mysid* length caught between the two nets ($t$ = `r summary(weightedlm)$coefficients[2, 3]`, $p$-value = `r summary(weightedlm)$coefficients[2, 4]`). Now, after accounting for the location, date, sex distribution, and heterogeneity of variance we find that the difference in mean length caught between the two net sizes is `r summary(weightedlm)$coefficients[2, 1]` mm.
 
-As a final analysis, we apply a robust regression, using an M-estimator model that accounts for heterogeniety in variance and presence of outlying observations.
+As a final analysis, we apply a robust regression, using an M-estimator model that accounts for heterogeneity in variance and presence of outlying observations.
 
 ```{r}
 summary(lmmod <- lm(y ~ net + date + gender + station, data=mysisLengthData))
@@ -180,7 +179,7 @@ pvalues <- pt(abs(tvalues), df, lower.tail=FALSE) * 2
 tableData <- cbind(summary(rlmmod)$coeff, pvalues)
 ```
 
-For the robust linear model, we still find statistically significant differences in mean length between the net sizes ($t$-value = `r tvalues`, $p$-value = `r pvalues` on `r df` degrees of freedom), however the effect size `r summary(rlmmod)$coefficients[2, 1]` is still about the same as from the weighted linear model
+For the robust linear model, we still find statistically significant differences in mean length between the net sizes ($t$-value = `r tvalues`, $p$-value = `r pvalues` on `r df` degrees of freedom), with the effect size `r summary(rlmmod)$coefficients[2, 1]` about the same as from the weighted linear model
 
 ```{r effect size, eval=TRUE}
 SD <- sqrt(((sum(mysisLengthData$net == "Large Net") - 1) *
@@ -198,17 +197,19 @@ Although the statistical tests using both the weighted linear model and the robu
 
 The effect size of the mean length difference between the two net sizes is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). Given a large sample size, a hypothesis test will show statistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest. Another measure of effect size is Cohen's $d$ which measures the difference in means relative to a pooled standard deviation. For our data, Cohen's $d$=`r I(d)`, which implies that the effect of net size is quite small in terms of practical significance.
 
-3) 
-The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. A visual inspection of counts by sex class shows no difference in counts by net size, but does show a change in counts over time.
-
-The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. 
+3)  Does the density when broken down by age and sex class differ between the two net sizes?
+The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. A visual inspection of counts by sex class shows no difference in counts by net size, but does show a change in counts over time for each sex class.
 
 ```{r, eval=TRUE, include=TRUE}
 ## load data
 load("~/mysis/data/mysisSexCountData.RData")   
+## Normalize the counts <- divide by 4 because of the zeros for the small net
+mysisSexCountData$count[mysisSexCountData$net == "Large Net"] <- 
+  mysisSexCountData$count[mysisSexCountData$net == "Large Net"] / 4
+
 ggplot(data=mysisSexCountData, aes(count)) +         
   geom_histogram() + facet_grid(net ~ gender) + 
-  ggtitle("Histogram of normalized counts by sex and net size")
+  ggtitle("Normalized counts by sex and net size")
 ```
 
 From the histogram of counts broken down by sex class and net size, we see no outstanding differences of counts between net size.
@@ -216,15 +217,12 @@ From the histogram of counts broken down by sex class and net size, we see no ou
 ```{r, eval=TRUE, include=TRUE}
 ggplot(data=mysisSexCountData, aes(count)) +
   geom_histogram() + facet_grid(gender ~ date) + 
-  ggtitle("Histogram of normalized counts by sex and date")
+  ggtitle("Normalized counts by sex and date")
 ```
 
 From the histogram of sex class by date, we see a pattern of juveniles maturing to males and females as time progresses and an increase in unknowns as juveniles grow in size but are not sexually differentiated.
 
 ```{r, message=FALSE, results="hide"}
-## Normalize the counts <- divide by 4 because of the zeros for the small net
-mysisSexCountData$count[mysisSexCountData$net == "Large Net"] <- 
-  mysisSexCountData$count[mysisSexCountData$net == "Large Net"] / 4
 ## Note: this gives warnings in the model as there are now non-integers
 summary(nbmod <- glm.nb(count ~ net + date + station + gender, data = mysisSexCountData))
 ## Now fit the model with rounded counts
@@ -234,40 +232,41 @@ mysisSexCountData$count[mysisSexCountData$net == "Large Net"] <-
 summary(nbmod <- glm.nb(count ~ net + date + station + gender, data = mysisSexCountData))
 ```
 
- To test for a change in counts broken down by sex category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling, sampling location, and sex class. The results show that there is no effect of net size on counts broken down by sex class ($z$-value = `r summary(nbmod)$coeff[2, 3]`, $p$-value = `r summary(nbmod)$coeff[2, 4]`). 
+To test for a change in counts broken down by sex category between the two net sizes, we construct a negative binomial regression model that examines the effects of net size, date of sampling, sampling location, and sex class. The results show that there is no effect of net size on counts when controlling for sampling date, sampling location, and sex class ($z$-value = `r summary(nbmod)$coeff[2, 3]`, $p$-value = `r summary(nbmod)$coeff[2, 4]`). 
 
-We are also interested if the proportion of juveniles is different between the two net sizes. Because the data are proportions, we cannot use methods that assume normally distributed data. One could use a contingency table to test homogeneity of proportions, but we prefer to use a glm known as beta regression (where a contingency table for homogeneity of proportions is a special case of beta regression).
-
-```{r, eval=TRUE, include=TRUE}
-load("~/mysis/data/mysisJuvenileData.RData") 
-ggplot(data=mysisJuvenileData, aes(prop)) + geom_histogram() + facet_grid(net ~ date) + 
-  ggtitle("Histogram of proportion of juveniles by net size")
-```
- 
-Looking at the histogram of proportions of juveniles by net size and by date, we see that there is more variability in the proportions for the small net (which is expected because the counts are smaller for the small net and therefore the proportions are more variable). We can see that the proportion of juveniles decreases through time and appears similar between the two net sizes.
-
-```{r, message=FALSE, eval=TRUE}
-brmod <- betareg(prop ~ net + date + station, data=mysisJuvenileData)
-```
-
-To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and sampling location. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (z=`r I(round(summary(brmod)$coef$mean[2, 3], 4))`, p=`r I(round(summary(brmod)$coef$mean[2, 4], 4))`).
-
-Also of interest is whether the ratio of females to males caught is the same between the two net sizes. Like the model for the proportion of juveniles, we could use a contingency table for heterogeneity of proportions, but we instead use the more flexible beta regression model. 
+We can also examine if the counts within a sex class are different between the net sizes. To begin, we compare the counts of juveniles between the two nets.
 
 ```{r, eval=TRUE, include=TRUE}
-load("~/mysis/data/mysisSexData.RData")
-ggplot(data=mysisSexData, aes(prop)) + geom_histogram() + facet_grid(net ~ date) + 
-  ggtitle("Histogram of proportion of females by net size")
+juvenileCountData <- data.frame(count= mysisSexCountData$count[mysisSexCountData$gender == "J"],
+                                date=mysisSexCountData$date[mysisSexCountData$gender == "J"], 
+                                net=mysisSexCountData$net[mysisSexCountData$gender == "J"], 
+                                station=mysisSexCountData$station[mysisSexCountData$gender == "J"])
+maleCountData <- data.frame(count= mysisSexCountData$count[mysisSexCountData$gender == "M"],
+                                date=mysisSexCountData$date[mysisSexCountData$gender == "M"], 
+                                net=mysisSexCountData$net[mysisSexCountData$gender == "M"], 
+                                station=mysisSexCountData$station[mysisSexCountData$gender == "M"])
+femaleCountData <- data.frame(count= mysisSexCountData$count[mysisSexCountData$gender == "F"],
+                                date=mysisSexCountData$date[mysisSexCountData$gender == "F"], 
+                                net=mysisSexCountData$net[mysisSexCountData$gender == "F"], 
+                                station=mysisSexCountData$station[mysisSexCountData$gender == "F"])
+
+ggplot(data=juvenileCountData, aes(count)) +
+  geom_histogram() + facet_grid(net ~ date) + 
+  ggtitle("Normalized counts of juveniles by net size and date")
 ```
- 
-Looking at the histogram of proportions of females by net size and by date, we see that there is more variability in the proportions for the small net (which is expected because the counts are smaller for the small net and therefore the proportions are more variable). We can see that the proportion of females appears to increase through time and appears similar between the two net sizes.
 
-```{r, message=FALSE, eval=TRUE}
-brmodsex <- betareg(prop ~ net + date + station, data=mysisSexData)
+The histogram shows no visual differences in the juvenile count between net sizes but shows a decrease in juvenile count through time, as expected. To test this formally, we construct a negative binomial model that controls for sampling date and station.
+
+```{r}
+## count model for juveniles
+summary(nbmodjuvenile <- glm.nb(count ~ net + date + station, data = juvenileCountData))
+## count model for males
+summary(nbmodmale <- glm.nb(count ~ net + date + station, data = maleCountData))
+## count model for females
+summary(nbmodfemale <- glm.nb(count ~ net + date + station, data = femaleCountData))
 ```
 
-To test for a change in the proportion of females caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and sampling location. The model shows that there is no evidence of an effect on the proportion of females caught between the two net sizes (z=`r I(round(summary(brmodsex)$coef$mean[2, 3], 4))`, p=`r I(round(summary(brmodsex)$coef$mean[2, 4], 4))`).
-
+From our model, we see that time of year and location are important in influencing the juvenile counts, but net size is not ($z$-value = `r summary(nbmodjuvenile)$coeff[2, 3]`, $p$-value = `r summary(nbmodjuvenile)$coeff[2, 4]`). Similar negative binomial regression models for counts of males and females show similar effects ($z$-value = `r summary(nbmodmale)$coeff[2, 3]`, $p$-value = `r summary(nbmodmale)$coeff[2, 4]` and $z$-value = `r summary(nbmodfemale)$coeff[2, 3]`, $p$-value = `r summary(nbmodfemale)$coeff[2, 4]` for males and females, respectively). For further details and `R` code of the analysis, see the attached appendix and the online supplement at http://jtipton25.github.io/mysis/.
 
 
 
@@ -289,7 +288,7 @@ To test for a change in the proportion of females caught between the two net siz
 
 ## Another issue to consider is the catch of a few large and small individuals in the larger nets.  You should be able to test if that is simply due to the larger sample size obtained in the larger net. You suggest that may be the case.
 
-Actually, this is quite a complicated statistical test as you are now testing the extreme observations of each sample. I prefer to look at the histograms and see that the distributions between net sizes for all of the different subsets of the data are consistent rather than do a formal statistical test (which is much more complicated). A quick and dirty extreme value analysis suggests that the model parameters for the generalized extreme value distributions are quite similar for the two net sizes, suggesting that both nets sample the large shrimp equally.
+Actually, this is quite a complicated statistical test as you are now testing the extreme observations of each sample. I prefer to look at the histograms and see that the distributions between net sizes for all of the different subsets of the data are consistent rather than do a formal statistical test (which is much more complicated). A quick and dirty extreme value analysis suggests that the model parameters for the generalized extreme value distributions are quite similar for the two net sizes, suggesting that both nets sample the large *Mysids* equally.
 
 ```{r}
 # gev.fit(xdat=mysisLengthData$y[mysisLengthData$net == "Small Net"])
