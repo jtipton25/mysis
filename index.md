@@ -21,7 +21,7 @@ ggplot(data=mysisCountData, aes(count)) + geom_histogram() + facet_grid(net ~ da
   ggtitle("Normalized counts by net size and date")
 ```
 
-![plot of chunk plotCount](/figure/drafts/2016-01-12-Appendix/plotCount-1.png)
+![plot of chunk plotCount](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/plotCount-1.png)
 
 By looking at the distributions of counts across time, we see that they are similar between net sizes, but the normality of the counts is questionable. From the histogram, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. Because counts cannot be less that zero and often are right skewed, the assumption of normality in the data is questionable. Hence, methods like linear regression, t-tests, and ANOVA that assume normal distributions are not ideal, but, for completeness we begin with a paired t-test.
 
@@ -143,7 +143,7 @@ ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ date)
   ggtitle("Lengths by net size")
 ```
 
-![plot of chunk unnamed-chunk-1](/figure/drafts/2016-01-12-Appendix/unnamed-chunk-1-1.png)
+![plot of chunk unnamed-chunk-1](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-1-1.png)
 
 When looking at the distribution of lengths between the two net sizes, we see that the histograms look quite similar across the different dates, with a general increasing trend through time. What stands out is that the small net catches about a quarter of the number of *Mysids*, as expected by the difference in net sizes, whereas the general shapes of the histograms appear quite similar across net sizes, suggesting there is not a difference in *Mysid* length distribution between nets across time.
 
@@ -153,7 +153,7 @@ ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ gende
   ggtitle("Lengths by sex and net size")
 ```
 
-![plot of chunk unnamed-chunk-2](/figure/drafts/2016-01-12-Appendix/unnamed-chunk-2-1.png)
+![plot of chunk unnamed-chunk-2](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-2-1.png)
 
 When we plot the distribution of lengths between the net sizes with respect to sex class, the distributions look quite similar as well. This suggests that there is not a lot of difference in length distribution of *Mysids* between the two net sizes when broken down by sex class.
 
@@ -188,7 +188,7 @@ pairttestlength
 qplot(y1-y2, xlab="difference in means")
 ```
 
-![plot of chunk pairedTTestLength](/figure/drafts/2016-01-12-Appendix/pairedTTestLength-1.png)
+![plot of chunk pairedTTestLength](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/pairedTTestLength-1.png)
 
 From the histogram of paired differences, it looks like there is some light evidence that the smaller net catches slightly smaller *Mysids*, although the distribution appears to be centered near 0. From the paired t-test, we find that there is a significant difference ($t$ = -2.158, $df$ = 39, $p$-value = 0.037) in expected counts, although the $p$-value is close to the 0.05 level. Despite the statistically significant difference, the practical difference is quite small as judged by the histograms and small difference in mean *Mysid* size difference (-0.293 mm).
 
@@ -224,7 +224,7 @@ pairttestlengthtrim
 qplot(y1trim-y2trim, xlab="difference in trimmed means")
 ```
 
-![plot of chunk pairedTTestLengthtrim](/figure/drafts/2016-01-12-Appendix/pairedTTestLengthtrim-1.png)
+![plot of chunk pairedTTestLengthtrim](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/pairedTTestLengthtrim-1.png)
 
 One could argue that because the larger net catches four times the number of *Mysids*, the large net is more likely to catch *Mysids* at the extremes of the size classes (either really small or really large *Mysids*). To account for this, we perform a paired t-test using a trimmed mean, removing the smallest and largest 5% of the lengths before calculating the sample mean. From the paired t-test using the trimmed means, we find that there is not a significant difference ($t$ = -1.754, $df$ = 39, $p$-value = 0.087) in expected counts, although the $p$-value is close to the 0.05 level. As with the untrimmed means, the practical difference is quite small as judged by the histograms and small difference in mean *Mysid* size difference (-0.247 mm).
 
@@ -236,7 +236,7 @@ vars <- as.vector(by(mysisLengthData$y, mysisLengthData$label, var))
 qplot(vars, main = "var by sampling location", xlab="var")
 ```
 
-![plot of chunk unnamed-chunk-3](/figure/drafts/2016-01-12-Appendix/unnamed-chunk-3-1.png)
+![plot of chunk unnamed-chunk-3](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-3-1.png)
 
 ```r
 bart_test <- bartlett.test(mysisLengthData$y, mysisLengthData$label)
@@ -401,7 +401,7 @@ ggplot(data=mysisSexCountData, aes(count)) +
   ggtitle("Normalized counts by sex and net size")
 ```
 
-![plot of chunk unnamed-chunk-6](/figure/drafts/2016-01-12-Appendix/unnamed-chunk-6-1.png)
+![plot of chunk unnamed-chunk-6](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-6-1.png)
 
 From the histogram of counts broken down by sex class and net size, we see no outstanding differences of counts between net size.
 
@@ -412,7 +412,7 @@ ggplot(data=mysisSexCountData, aes(count)) +
   ggtitle("Normalized counts by sex and date")
 ```
 
-![plot of chunk unnamed-chunk-7](/figure/drafts/2016-01-12-Appendix/unnamed-chunk-7-1.png)
+![plot of chunk unnamed-chunk-7](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-7-1.png)
 
 From the histogram of sex class by date, we see a pattern of juveniles maturing to males and females as time progresses and an increase in unknowns as juveniles grow in size but are not sexually differentiated.
 
@@ -549,7 +549,7 @@ ggplot(data=juvenileCountData, aes(count)) +
   ggtitle("Normalized counts of juveniles by net size and date")
 ```
 
-![plot of chunk unnamed-chunk-10](/figure/drafts/2016-01-12-Appendix/unnamed-chunk-10-1.png)
+![plot of chunk unnamed-chunk-10](https://github.com/jtipton25/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-10-1.png)
 
 The histogram shows no visual differences in the juvenile count between net sizes but shows a decrease in juvenile count through time, as expected. To test this formally, we construct a negative binomial model that controls for sampling date and station.
 
