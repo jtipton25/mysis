@@ -75,7 +75,8 @@ estimate_params <- function(model, data, pars = pars, iter=5000){
 # m <- sampling(sm, data = list(N = length(count), y = count, X = X, p=dim(X)[2]),
 #   pars = c("beta", "phi"),
 #   iter = 5000, chains = 4)
-m <- estimate_params(sm, data = list(N = length(count), y = count, X = X, p=dim(X)[2]),  pars = c("beta", "phi"))
+m <- estimate_params(sm, data=list(N=length(count), y=count, X=X, p=dim(X)[2]),
+                     pars=c("beta", "phi"))
 ```
 
 ## Model output
