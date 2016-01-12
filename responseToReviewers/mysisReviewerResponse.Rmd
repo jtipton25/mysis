@@ -1,8 +1,9 @@
 ---
-title: "Effect of net size on estimates of abundance, size, age and sex ratio of Mysis diluviana Journal of Great Lakes Research - Statistical Analysis"
+title: Effect of net size on estimates of abundance, size, age and sex ratio of Mysis
+  diluviana Journal of Great Lakes Research - Statistical Analysis
 author: "John Tipton"
 date: "January 3, 2016"
-output: word_document
+output: html_document
 ---
 
 ```{r loadLibraries, echo=FALSE, include=FALSE, message=FALSE}
@@ -11,7 +12,7 @@ options(digits=3)
 set.seed(123)
 library(knitr)
 # knitr::opts_chunk$set(fig.path='../images/mysisAnalysis-')
-knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(include=FALSE)
 knitr::opts_chunk$set(message=FALSE)
 knitr::opts_chunk$set(warning=FALSE)
@@ -29,7 +30,7 @@ library(betareg)
 To determine if there was any difference between the two sized nets, we have a few questions of interest. Our main questions of interest are 1) Is there a difference in density of *Mysids* caught between the two nets, 2) Is there a difference in mean length of *Mysids* caught between the two nets, and 3) Does the density when broken down by age and sex class differ between the two net sizes? Note that we will use count and density interchangeable in what follows because we normalize to a one $m^2$ area.
 
 
-1) Is there a difference in density of *Mysids* caught between the two nets?
+## 1) Is there a difference in density of *Mysids* caught between the two nets?
 
 
 ```{r totalCount, eval=TRUE}
@@ -47,6 +48,7 @@ By looking at the distributions of counts across time, we see that they are simi
 y1 <- mysisCountData$count[mysisCountData$net == "Small Net"]
 y2 <- mysisCountData$count[mysisCountData$net == "Large Net"]
 pairttest <- t.test(y1, y2, paired=TRUE)
+summary(pairttest)
 ```
 
 From the paired t-test, we find that there is no significant difference ($t$ = `r pairttest$statistic`, $df$ = `r pairttest$parameter`, $p$-value = `r pairttest$p.value`) in expected counts.
@@ -67,7 +69,7 @@ $$
 $$
 where $\mathbf{X}_i$ is the set of covariates for observation $i$. Then we perform inference on our coefficients $\boldsymbol{\beta}$, where the interpretation of $\beta_j$ is a percent change in count per unit change in $X_{ij}$.
 
-```{r totalCountModel, eval=TRUE, results="hide"}
+```{r totalCountModel, eval=TRUE}
 summary(nbmod <- glm.nb(count ~ net + date + station, data=mysisCountData))
 ## get coefficient estimates
 coefs <- c(nbmod$coefficients, nbmod$theta)           
@@ -85,7 +87,7 @@ kable(tableData, digits = 4, format="html")
 
 
 
-2) Is there a difference in mean length of *Mysids* caught between the two nets?
+## 2) Is there a difference in mean length of *Mysids* caught between the two nets?
 First we examine some histograms and get an idea of what the length data look like.
 
 ```{r lengthData}
@@ -144,7 +146,7 @@ bart_test <- bartlett.test(mysisLengthData$y, mysisLengthData$label)
 levene_test <- leveneTest(mysisLengthData$y, mysisLengthData$label)
 ```
 
-When looking at the distribution of sampling variance by sampling occasion (10 locations, 2 nets, and 4 different sampling dates gives 80 total sampling occasions), we see that there is some difference in variance of lengths by sampling occasion and Bartlett's test ($p$-value = `r bart_test$p.value`) and Levene's test ($p$-values = `r levene_test$Pr[1]`).
+When looking at the distribution of sampling variance by sampling occasion (10 locations, 2 nets, and 4 different sampling dates gives 80 total sampling occasions), we see that there is some difference in variance of lengths by sampling occasion and Bartlett's test ($p$-value `r format.pval(bart_test$p.value)`) and Levene's test ($p$-value `r format.pval(levene_test$Pr[1])`).
 
 To test if there is a difference in length of net sizes while accounting for heterogeneity, we use a weighted least squares regression where the weights are the inverse of the group variances.
 
@@ -197,7 +199,7 @@ Although the statistical tests using both the weighted linear model and the robu
 
 The effect size of the mean length difference between the two net sizes is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). Given a large sample size, a hypothesis test will show statistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest. Another measure of effect size is Cohen's $d$ which measures the difference in means relative to a pooled standard deviation. For our data, Cohen's $d$=`r I(d)`, which implies that the effect of net size is quite small in terms of practical significance.
 
-3)  Does the density when broken down by age and sex class differ between the two net sizes?
+## 3)  Does the density when broken down by age and sex class differ between the two net sizes?
 The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. A visual inspection of counts by sex class shows no difference in counts by net size, but does show a change in counts over time for each sex class.
 
 ```{r, eval=TRUE, include=TRUE}

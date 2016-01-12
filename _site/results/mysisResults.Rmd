@@ -1,0 +1,236 @@
+This document shows the analyses performed in Johnson et. al. We start by loading packages and define helper functions
+
+```{r loadLibraries, echo=TRUE, include=FALSE, message=FALSE}
+options(digits=3)
+set.seed(123)
+require(knitr)
+require(ggplot2)
+require(Gmisc)
+require(MASS)
+require(stringr)
+require(mgcv)
+require(lme4)
+
+```
+
+## Model for Total counts for each net
+We begin the analysis by loading the data used for measuring total count. At each sampling event $i$ we recorded the number of mysis shrimp caught and important covariates including date, site, net size, etc. 
+```{r totalCount, echo=TRUE, include=TRUE, message=FALSE, cache=TRUE}
+load("~/mysis/data/mysisCountData.RData")                                 ## load count data
+mns <- by(mysisCountData[, "count"], mysisCountData[, "net"], mean)       ## mean of counts by net size
+vars <- by(mysisCountData[, "count"], mysisCountData[, "net"], var)       ## variance of counts by net size
+``` 
+
+After loading the data, we can look at histograms of data to get a better understanding of what variables effect mysis shrimp count. First we examine the total counts broken down by net size and sampling month
+
+```{r plotCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center"}
+ggplot(data=mysisCountData, aes(count)) + geom_histogram() + facet_grid(net ~ date) + 
+  ggtitle("Histogram of normalized counts by net size and date")
+```
+
+From these histograms, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. We test this formally by fitting a model to compare if the count of shrimp caught by the large net is the same as the count of shrimp caught by the large net, after normalizing for the area of the two nets and controlling for covariates. Because counts cannot be less that zero and often are right skewed, the assumption of Normality in the data is questionable. Hence, we don't want to use Gaussian methods like linear regression and ANOVA. Luckily, the class of models known a generalized linear models (or glms) offers a solution. These models allow for regression models that control for the effects of covariates like linear regression but do not assume the normal distribution. For count data, there are two natural distributions to use: the Poisson distribution and the negative binomial distribution. The Poisson distribution has the strong assumption that the mean equals the variance, which is often not met in practical datasets. In our data, the count means are $(`r I(mns)`)$ and the count variances are $(`r I(vars)`)$, for the small and large nets, respectively. Therefore we use a negative binomial model
+$$
+\label{neg:bin}
+y_i \sim \mbox{NegBin}(\mu_i, \phi),
+$$
+where $\mu$ is the mean of the negative binomial distribution and $\phi$ is an overdispersion parameter that allows for the mean and variance to be different. We model $\mu$ with covariates using a log link function
+$$ 
+\mu_i = log(\mathbf{X}_i \boldsymbol{\beta}),
+$$
+where $\mathbf{X}_i$ is the set of covariates for observation $i$. Then we perform inference on our coefficients $\boldsymbol{\beta}$, where the interpretation of $\beta_j$ is a percent change in count per unit change in $X_{ij}$.
+```{r totalCountModel, echo=TRUE, eval=TRUE, results="hide"}
+## construct covariates of net size, date and their interaction
+X <- model.matrix(~ net * date - 1, data=mysisCountData)  
+## fit negative binomial model
+summary(nbmod <- glm.nb(y ~ ., data = data.frame(y=mysisCountData$count, X)))
+## get coefficient estimates
+coefs <- c(nbmod$coefficients, nbmod$theta)           
+```
+
+To test for a change in total counts between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+
+
+```{r countModelResults, echo=TRUE}
+tableData <- cbind(summary(nbmod)$coeff[1:6, ])
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
+                         "Net Size * August", "Net Size * September")
+kable(tableData, digits = 4, format="pandoc")
+```
+
+## Model for counts by sex
+
+The next question we wish to explore is whether the total counts when grouped into sex classes of male, female, juvenile, and unknown vary with net size or other covariates. To do this we use (\ref{eq:negBin}) above. We begin by loading the data where counts are divided into sex classes.
+
+```{r, echo=TRUE, message=FALSE, results="hide"}
+## load data
+load("~/mysis/data/mysisSexCountData.RData")   
+## construct model matrix for covariates
+X <- model.matrix(~ net * gender + net * date + gender * date-1, 
+                  data=mysisSexCountData)
+## fit model
+nbmod <- glm.nb(y ~ ., data = data.frame(y=mysisSexCountData$count, X))
+```
+
+To explore this data in more detail we examine two sets of histograms, the counts of each sex class broken down by date in figure1 and the counts of each sex class broken down by net size in figure2. From these we see...
+
+```{r plot SexCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", fig.show="hold"}
+ggplot(data=mysisSexCountData, aes(count)) +         
+  geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Histogram of normalized counts by sex and net size")
+ggplot(data=mysisSexCountData, aes(count)) +
+  geom_histogram() + facet_grid(gender ~ date) + 
+  ggtitle("Histogram of normalized counts by sex and date")
+```
+
+To test for a change in counts broken down by gender category between the two net sizes, we construct a negative binomal regression model that examines the effects of net size, date of sampling, the interaction between net size and sampling date, and the interaction between sampling date and gender. The results shown below show that there is no evidence of an interaction between net size and sampling date and no evidence of an interaction between net size and gender. 
+
+```{r sexResults, echo=TRUE, cache=TRUE}
+tableData <- cbind(summary(nbmod)$coeff)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Net Size * Females", "Net Size * Juveniles", 
+                         "Net Size * Unknowns", "Net Size * August",
+                         "Net Size * September",
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+kable(tableData, digits = 4, format="pandoc")
+```
+
+Thus, we refit the model without the interaction between net size and sampling date. To do this we start by loading the new covariate matrix $\mathbf{X}$.
+
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE}
+X <- model.matrix(~ net * gender + gender * date, data=mysisSexCountData)
+nbmod <- glm.nb(y ~ . -1, data = data.frame(y=mysisSexCountData$count, X))
+```
+
+On this reduced model, the results shown below show that there is no evidence of an effect on the number of counts observed between the two net sizes (p=`r I(round(summary(nbmod)$coef[2, 4], 4))`).
+```{r sexResultsReduced, echo=TRUE, cache=TRUE}
+tableData <- cbind(summary(nbmod)$coeff)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Net Size * Females", "Net Size * Juveniles", 
+                         "Net Size * Unknowns", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+kable(tableData, digits = 4, format="pandoc")
+```
+
+## Model for proportion of juveniles
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE}
+set.seed(123)
+data_one_way <- read.csv("~/mysis/data/ttestData.csv", skip = 3, nrows = 40,
+                         header = TRUE, stringsAsFactors=FALSE)
+
+prop <- c(as.numeric(data_one_way$full.2),    ## proportion of juveniles full net
+             as.numeric(data_one_way$half.2)) ## proportion of juveniles half net
+N <- length(prop)
+## Set improper values to NA
+
+date <- rep(as.factor(data_one_way$month), 2)
+net <- as.factor(c(rep("full", 40), rep("half", 40)))
+data <- data.frame(prop=prop, date=date, net=net)
+levels(data$date) <- c("July", "August", "Septempber")
+levels(data$net) <- c("Small Net", "Large Net")
+X <- model.matrix(~ net * date)
+library(betareg)
+brmod <- betareg(prop ~ . -1, data = data.frame(prop, X))
+summary(brmod)
+```
+
+```{r plotJuviCount, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center"}
+ggplot(data=data, aes(prop)) + geom_histogram() + facet_grid(net ~ .) + 
+  ggtitle("Histogram of proportion of juveniles by net size")
+```
+
+To test for a change in the proportion of juveniles caught between the two net sizes, we construct a beta regression model that examines the effects of net size, date of sampling and the interaction between net size and sampling date. The results shown below show that there is no evidence of an effect on the proportion of juveniles caught between the two net sizes (p=`r I(round(summary(brmod)$coef$mean[2, 4], 4))`).
+
+```{r juvenileResults, echo=TRUE, cache=TRUE}
+tableData <- cbind(summary(brmod)$coeff$mean)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "August", "September", 
+                         "Net Size * August", "Net Size * September")
+kable(tableData, digits = 4, format="pandoc")
+```
+
+## Length model
+
+```{r, echo=TRUE, include=FALSE, message=FALSE, cache=TRUE}
+# data_length <- read.csv("~/mysis/data/lengthData.csv", skip = 4, header = TRUE)
+# net <- data_length$Size..m.
+# y <- data_length$Length..mm.
+# gender <- as.factor(substr(str_trim(as.character(data_length$Gender)), 0, 1))
+# station <- data_length$Station
+# date <- as.numeric(data_length$Date)
+# date[7330:7519] <- 4
+# date[7559:7773] <- 4
+# date[date == 2] <- 1      ## collapse into monthly values
+# date[date == 3] <- 2
+# date[date == 4] <- 3
+# date <- as.factor(date)
+# # plot(as.numeric(date), type='l', main = "Data looks better")
+# data <- data.frame(y=y, date=date, net=as.factor(net), gender=gender)
+# levels(data$date) <- c("July", "August", "Septempber")
+# levels(data$net) <- c("Small Net", "Large Net")
+# levels(data$gender) <- c("Female", "Juvenile", "Male", "Unknown")
+
+load("~/mysis/data/mysisLengthData.RData")
+X <- model.matrix(~ net + date + gender, data=mysisLengthData)
+idx <- attr(uniquecombs(X), "index")
+summary(lmmod <- lm(y ~ net + date * gender, data=mysisLengthData))
+library(lme4)
+# summary(lmemod <- lmer(y ~ net * date + net * gender +
+#                          date * gender + (1|station), data=mysisLengthData))
+# summary(lmemod <- lmer(y ~ net + date * gender + (1|station),
+#                        data=mysisLengthData))
+# summary(rlmmod <- rlm(y ~ net * date + net * gender + 
+#                         date * gender, data=mysisLengthData))))
+summary(rlmmod <- rlm(y ~ net + date * gender, data=mysisLengthData))
+tvalues <- summary(rlmmod)$coefficients[, 3]
+df <- summary(rlmmod)$df[2]
+pvalues <- pt(abs(tvalues), df, lower.tail=FALSE) * 2
+```
+
+```{r plotLength, echo=TRUE, warning=FALSE, message=FALSE, out.width="300px", fig.align="center", fig.show="hold"}
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ date) +
+  ggtitle("Lengths by net size")
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(net ~ gender) + 
+  ggtitle("Lengths by sex and net size")
+ggplot(data=mysisLengthData, aes(y)) + geom_histogram() + facet_grid(date ~ gender) + 
+  ggtitle("Lengths by sex and date")
+```
+
+```{r lengthResults, echo=TRUE, cache=TRUE}
+tableData <- cbind(summary(rlmmod)$coeff, pvalues)
+colnames(tableData) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+rownames(tableData) <- c("Intercept", "Net Size", "Females", "Juveniles", 
+                         "Unknown Gender", "August", "September", 
+                         "Females * August", "Juveniles * August", 
+                         "Unknown Gender * August",
+                         "Females * September", "Juveniles * September", 
+                         "Unknown Gender * September")
+
+kable(tableData, digits = 4, format="pandoc")
+```
+
+
+
+```{r effect size, echo=TRUE, eval=FALSE}
+SD <- sqrt(((sum(mysisLengthData$net == "Large Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Large Net"])^2 + 
+              (sum(mysisLengthData$net == "Small Net") - 1) *
+              sd(mysisLengthData$y[mysisLengthData$net == "Small Net"])^2) / 
+             (sum(mysisLengthData$net == "Large Net") + 
+                sum(mysisLengthData$net == "Small Net")))
+
+d <- (mean(mysisLengthData$y[mysisLengthData$net == "Large Net"]) - 
+        mean(mysisLengthData$y[mysisLengthData$net == "Small Net"])) / SD
+```
+We see that there is a significant effect of net size on mean length caught (p = `r I(pvalues[2])`) after controlling for date, gender class, and an interaction between date and gender class. Although this is statisticallly significant, the effect size is small (`r I(summary(rlmmod)$coefficients[2, 1])`mm) and the sample size is large (n = `r I(length(mysisLengthData$y))`). given a large sample size, a hypothesis test will show staistical significance unless the population effect size is exactly zero (this explains why all of the p-values in the table above are less than 0.05). Therefore, the practical effect of a difference in mean length of `r I(summary(rlmmod)$coefficients[2, 1])`mm on a species with a mean length of `r I(mean(mysisLengthData$y))`mm is small (this is the smallest effect of all the effects estimated by almost a factor of two) and a difference in means of this size is not of practical interest.
+
