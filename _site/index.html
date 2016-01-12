@@ -46,7 +46,7 @@ href="stylesheets/github-light.css" media="screen">
 </code></pre></div><div class="highlight"><pre><code class="language-r" data-lang="r">ggplot<span class="p">(</span>data<span class="o">=</span>mysisCountData<span class="p">,</span> aes<span class="p">(</span>count<span class="p">))</span> <span class="o">+</span> geom_histogram<span class="p">()</span> <span class="o">+</span> facet_grid<span class="p">(</span>net <span class="o">~</span> <span class="kp">date</span><span class="p">)</span> <span class="o">+</span> 
   ggtitle<span class="p">(</span><span class="s">&quot;Normalized counts by net size and date&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/plotCount-1.png" alt="plot of chunk plotCount"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/plotCount-1.png" alt="plot of chunk plotCount"></p>
 
 <p>By looking at the distributions of counts across time, we see that they are similar between net sizes, but the normality of the counts is questionable. From the histogram, we see little differences between the two net sizes, except for perhaps a spike in catches of about 120 by the small net in August. Because counts cannot be less that zero and often are right skewed, the assumption of normality in the data is questionable. Hence, methods like linear regression, t-tests, and ANOVA that assume normal distributions are not ideal, but, for completeness we begin with a paired t-test.</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r">y1 <span class="o">&lt;-</span> mysisCountData<span class="o">$</span>count<span class="p">[</span>mysisCountData<span class="o">$</span>net <span class="o">==</span> <span class="s">&quot;Small Net&quot;</span><span class="p">]</span>
@@ -139,13 +139,13 @@ coefs <span class="o">&lt;-</span> <span class="kt">c</span><span class="p">(</s
 </code></pre></div><div class="highlight"><pre><code class="language-r" data-lang="r">ggplot<span class="p">(</span>data<span class="o">=</span>mysisLengthData<span class="p">,</span> aes<span class="p">(</span>y<span class="p">))</span> <span class="o">+</span> geom_histogram<span class="p">()</span> <span class="o">+</span> facet_grid<span class="p">(</span>net <span class="o">~</span> <span class="kp">date</span><span class="p">)</span> <span class="o">+</span>
   ggtitle<span class="p">(</span><span class="s">&quot;Lengths by net size&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/unnamed-chunk-1-1.png" alt="plot of chunk unnamed-chunk-1"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-1-1.png" alt="plot of chunk unnamed-chunk-1"></p>
 
 <p>When looking at the distribution of lengths between the two net sizes, we see that the histograms look quite similar across the different dates, with a general increasing trend through time. What stands out is that the small net catches about a quarter of the number of <em>Mysids</em>, as expected by the difference in net sizes, whereas the general shapes of the histograms appear quite similar across net sizes, suggesting there is not a difference in <em>Mysid</em> length distribution between nets across time.</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r">ggplot<span class="p">(</span>data<span class="o">=</span>mysisLengthData<span class="p">,</span> aes<span class="p">(</span>y<span class="p">))</span> <span class="o">+</span> geom_histogram<span class="p">()</span> <span class="o">+</span> facet_grid<span class="p">(</span>net <span class="o">~</span> gender<span class="p">)</span> <span class="o">+</span> 
   ggtitle<span class="p">(</span><span class="s">&quot;Lengths by sex and net size&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2"></p>
 
 <p>When we plot the distribution of lengths between the net sizes with respect to sex class, the distributions look quite similar as well. This suggests that there is not a lot of difference in length distribution of <em>Mysids</em> between the two net sizes when broken down by sex class.</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r">y1 <span class="o">&lt;-</span> <span class="kp">by</span><span class="p">(</span>mysisLengthData<span class="o">$</span>y<span class="p">[</span>mysisLengthData<span class="o">$</span>net <span class="o">==</span> <span class="s">&quot;Small Net&quot;</span><span class="p">],</span> 
@@ -170,7 +170,7 @@ pairttestlength
 ##                  -0.293
 </code></pre></div><div class="highlight"><pre><code class="language-r" data-lang="r">qplot<span class="p">(</span>y1<span class="o">-</span>y2<span class="p">,</span> xlab<span class="o">=</span><span class="s">&quot;difference in means&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/pairedTTestLength-1.png" alt="plot of chunk pairedTTestLength"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/pairedTTestLength-1.png" alt="plot of chunk pairedTTestLength"></p>
 
 <p>From the histogram of paired differences, it looks like there is some light evidence that the smaller net catches slightly smaller <em>Mysids</em>, although the distribution appears to be centered near 0. From the paired t-test, we find that there is a significant difference ($t$ = -2.158, $df$ = 39, $p$-value = 0.037) in expected counts, although the $p$-value is close to the 0.05 level. Despite the statistically significant difference, the practical difference is quite small as judged by the histograms and small difference in mean <em>Mysid</em> size difference (-0.293 mm).</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r">y1trim <span class="o">&lt;-</span> <span class="kp">by</span><span class="p">(</span>mysisLengthData<span class="o">$</span>y<span class="p">[</span>mysisLengthData<span class="o">$</span>net <span class="o">==</span> <span class="s">&quot;Small Net&quot;</span><span class="p">],</span>
@@ -195,7 +195,7 @@ pairttestlengthtrim
 ##                  -0.247
 </code></pre></div><div class="highlight"><pre><code class="language-r" data-lang="r">qplot<span class="p">(</span>y1trim<span class="o">-</span>y2trim<span class="p">,</span> xlab<span class="o">=</span><span class="s">&quot;difference in trimmed means&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/pairedTTestLengthtrim-1.png" alt="plot of chunk pairedTTestLengthtrim"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/pairedTTestLengthtrim-1.png" alt="plot of chunk pairedTTestLengthtrim"></p>
 
 <p>One could argue that because the larger net catches four times the number of <em>Mysids</em>, the large net is more likely to catch <em>Mysids</em> at the extremes of the size classes (either really small or really large <em>Mysids</em>). To account for this, we perform a paired t-test using a trimmed mean, removing the smallest and largest 5% of the lengths before calculating the sample mean. From the paired t-test using the trimmed means, we find that there is not a significant difference ($t$ = -1.754, $df$ = 39, $p$-value = 0.087) in expected counts, although the $p$-value is close to the 0.05 level. As with the untrimmed means, the practical difference is quite small as judged by the histograms and small difference in mean <em>Mysid</em> size difference (-0.247 mm).</p>
 
@@ -203,7 +203,7 @@ pairttestlengthtrim
 <div class="highlight"><pre><code class="language-r" data-lang="r">vars <span class="o">&lt;-</span> <span class="kp">as.vector</span><span class="p">(</span><span class="kp">by</span><span class="p">(</span>mysisLengthData<span class="o">$</span>y<span class="p">,</span> mysisLengthData<span class="o">$</span>label<span class="p">,</span> var<span class="p">))</span>
 qplot<span class="p">(</span>vars<span class="p">,</span> main <span class="o">=</span> <span class="s">&quot;var by sampling location&quot;</span><span class="p">,</span> xlab<span class="o">=</span><span class="s">&quot;var&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/unnamed-chunk-3-1.png" alt="plot of chunk unnamed-chunk-3"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-3-1.png" alt="plot of chunk unnamed-chunk-3"></p>
 <div class="highlight"><pre><code class="language-r" data-lang="r">bart_test <span class="o">&lt;-</span> bartlett.test<span class="p">(</span>mysisLengthData<span class="o">$</span>y<span class="p">,</span> mysisLengthData<span class="o">$</span>label<span class="p">)</span>
 bart_test
 </code></pre></div><div class="highlight"><pre><code class="language-text" data-lang="text">## 
@@ -332,14 +332,14 @@ ggplot<span class="p">(</span>data<span class="o">=</span>mysisSexCountData<span
   geom_histogram<span class="p">()</span> <span class="o">+</span> facet_grid<span class="p">(</span>net <span class="o">~</span> gender<span class="p">)</span> <span class="o">+</span> 
   ggtitle<span class="p">(</span><span class="s">&quot;Normalized counts by sex and net size&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/unnamed-chunk-6-1.png" alt="plot of chunk unnamed-chunk-6"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-6-1.png" alt="plot of chunk unnamed-chunk-6"></p>
 
 <p>From the histogram of counts broken down by sex class and net size, we see no outstanding differences of counts between net size.</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r">ggplot<span class="p">(</span>data<span class="o">=</span>mysisSexCountData<span class="p">,</span> aes<span class="p">(</span>count<span class="p">))</span> <span class="o">+</span>
   geom_histogram<span class="p">()</span> <span class="o">+</span> facet_grid<span class="p">(</span>gender <span class="o">~</span> <span class="kp">date</span><span class="p">)</span> <span class="o">+</span> 
   ggtitle<span class="p">(</span><span class="s">&quot;Normalized counts by sex and date&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/unnamed-chunk-7-1.png" alt="plot of chunk unnamed-chunk-7"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-7-1.png" alt="plot of chunk unnamed-chunk-7"></p>
 
 <p>From the histogram of sex class by date, we see a pattern of juveniles maturing to males and females as time progresses and an increase in unknowns as juveniles grow in size but are not sexually differentiated.</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r"><span class="c1">## Note: this gives warnings in the model as there are now non-integers</span>
@@ -458,7 +458,7 @@ ggplot<span class="p">(</span>data<span class="o">=</span>juvenileCountData<span
   geom_histogram<span class="p">()</span> <span class="o">+</span> facet_grid<span class="p">(</span>net <span class="o">~</span> <span class="kp">date</span><span class="p">)</span> <span class="o">+</span> 
   ggtitle<span class="p">(</span><span class="s">&quot;Normalized counts of juveniles by net size and date&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><img src="/figure/drafts/2016-01-12-Appendix/unnamed-chunk-10-1.png" alt="plot of chunk unnamed-chunk-10"></p>
+<p><img src="/mysis/figure/drafts/2016-01-12-Appendix/unnamed-chunk-10-1.png" alt="plot of chunk unnamed-chunk-10"></p>
 
 <p>The histogram shows no visual differences in the juvenile count between net sizes but shows a decrease in juvenile count through time, as expected. To test this formally, we construct a negative binomial model that controls for sampling date and station.</p>
 <div class="highlight"><pre><code class="language-r" data-lang="r"><span class="c1">## count model for juveniles</span>
