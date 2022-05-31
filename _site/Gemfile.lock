@@ -112,7 +112,7 @@ GEM
     public_suffix (1.5.3)
     pygments.rb (0.6.3)
       posix-spawn (~> 0.3.6)
-      yajl-ruby (~> 1.4.2)
+      yajl-ruby (~> 1.4.3)
     rb-fsevent (0.9.7)
     rb-inotify (0.9.5)
       ffi (>= 1.9.24)
@@ -131,7 +131,7 @@ GEM
       ethon (>= 0.8.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    yajl-ruby (1.4.2)
+    yajl-ruby (1.4.3)
 
 PLATFORMS
   ruby
