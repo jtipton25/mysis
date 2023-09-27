@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     RedCloth (4.3.0)
-    activesupport (6.1.7.3)
+    activesupport (6.1.7.5)
       i18n (~> 0.8.0)
       json (~> 2.3.0, >= 2.3.0)
       minitest (~> 5.1)
@@ -52,7 +52,7 @@ GEM
       public_suffix (~> 1.4)
       typhoeus (~> 0.7)
     html-pipeline (1.9.0)
-      activesupport (~> 6.1.7.3)
+      activesupport (~> 6.1.7.5)
       nokogiri (~> 1.8.5)
     i18n (0.8.0)
     jekyll (>= 3.6.3)
